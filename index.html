@@ -1,35 +1,46 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>🏁 Enrollment Race</title>
+  <meta charset="UTF-8" />
+  <title>🏁 Enrollment Race to 550</title>
 
-  <!-- Confetti Library -->
+  <!-- Confetti -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #020617;
+      background: radial-gradient(circle at top, #020617, #000);
       color: white;
       text-align: center;
-      padding: 20px;
+      padding: 30px;
     }
+
+    h1 {
+      margin-bottom: 30px;
+    }
+
     .card {
       background: #1e293b;
       margin: 20px auto;
       padding: 20px;
-      border-radius: 15px;
-      width: 300px;
+      border-radius: 18px;
+      width: 320px;
+      box-shadow: 0 10px 25px rgba(0,0,0,.4);
     }
+
     .progress {
       background: #334155;
       height: 20px;
       border-radius: 10px;
       overflow: hidden;
+      margin: 12px 0;
     }
+
     .bar {
-      background: #22c55e;
       height: 100%;
+      background: linear-gradient(90deg, #22c55e, #4ade80);
+      transition: width 0.6s ease;
     }
   </style>
 </head>
@@ -37,48 +48,45 @@
 <body>
 
 <h1>🏁 Enrollment Race to 550</h1>
+
 <div id="team-goal"></div>
 <div id="dashboard"></div>
-
 
 <script>
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=1984389436&single=true&output=csv";
 const TEAM_GOAL = 550;
 
 fetch(SHEET_URL)
-  .then(res => res.text())
-  .then(text => {
-    const rows = text.trim().split("\n").slice(1);
-    const dash = document.getElementById("dashboard");
-    const teamBar = document.getElementById("team-goal");
+  .then(response => response.text())
+  .then(csv => {
+    const rows = csv.trim().split("\n").slice(1);
+    const dashboard = document.getElementById("dashboard");
+    const teamGoal = document.getElementById("team-goal");
 
     let teamTotal = 0;
     let people = [];
 
     rows.forEach(row => {
-      if (!row) return;
+      const cols = row.split(",");
 
-      const c = row.split(",");
-
-      // Safety check
-      if (!c[0] || isNaN(c[1]) || isNaN(c[2])) return;
+      if (!cols[0] || isNaN(cols[1]) || isNaN(cols[2])) return;
 
       const person = {
-        name: c[0],
-        goal: Number(c[1]),
-        ytd: Number(c[2]),
-        halfway: c[6] === "TRUE",
-        goalHit: c[7] === "TRUE"
+        name: cols[0],
+        goal: Number(cols[1]),
+        ytd: Number(cols[2]),
+        halfway: cols[6] === "TRUE",
+        goalHit: cols[7] === "TRUE"
       };
 
       teamTotal += person.ytd;
       people.push(person);
     });
 
-    // 🏁 TEAM GOAL BAR
+    /* TEAM BAR */
     const teamPercent = Math.round((teamTotal / TEAM_GOAL) * 100);
 
-    teamBar.innerHTML = `
+    teamGoal.innerHTML = `
       <div class="card">
         <h2>🏁 TEAM RACE TO ${TEAM_GOAL}</h2>
         <div class="progress">
@@ -92,23 +100,25 @@ fetch(SHEET_URL)
       confetti({ particleCount: 600, spread: 160 });
     }
 
-    // 🏆 SORT LEADERBOARD
+    /* SORT LEADERBOARD */
     people.sort((a, b) => (b.ytd / b.goal) - (a.ytd / a.goal));
 
-    // 👤 RENDER PEOPLE
-    dash.innerHTML = "";
+    /* RENDER PEOPLE */
+    dashboard.innerHTML = "";
     people.forEach(p => {
       const percent = Math.round((p.ytd / p.goal) * 100);
 
-      dash.innerHTML += `
-        <div class="card">
-          <h2>${p.name}</h2>
-          <div class="progress">
-            <div class="bar" style="width:${percent}%"></div>
-          </div>
-          <p>${p.ytd} / ${p.goal} (${percent}%)</p>
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <h2>${p.name}</h2>
+        <div class="progress">
+          <div class="bar" style="width:${percent}%"></div>
         </div>
+        <p>${p.ytd} / ${p.goal} (${percent}%)</p>
       `;
+
+      dashboard.appendChild(card);
 
       if (p.halfway && percent < 100) {
         confetti({ particleCount: 150, spread: 90 });
@@ -118,7 +128,6 @@ fetch(SHEET_URL)
       }
     });
   });
-      
 </script>
 
 </body>
