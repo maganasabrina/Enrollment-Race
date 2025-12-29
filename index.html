@@ -38,47 +38,84 @@
 <body>
 
 <h1>🏁 Enrollment Race to 550</h1>
+<div id="team-goal"></div>
 <div id="dashboard"></div>
 
+
 <script>
-const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=1984389436&single=true&output=csv";
+const SHEET_URL = "PASTE_YOUR_CSV_LINK_HERE";
+const TEAM_GOAL = 550;
 
 fetch(SHEET_URL)
   .then(res => res.text())
   .then(text => {
     const rows = text.split("\n").slice(1);
     const dash = document.getElementById("dashboard");
+    const teamBar = document.getElementById("team-goal");
+
+    let teamTotal = 0;
+    let people = [];
 
     rows.forEach(row => {
       if (!row) return;
-
       const c = row.split(",");
-      const name = c[0];
-      const goal = Number(c[1]);
-      const ytd = Number(c[2]);
-      const halfway = c[6] === "TRUE";
-      const goalHit = c[7] === "TRUE";
-      const percent = Math.round((ytd / goal) * 100);
 
-      dash.innerHTML += `
-        <div class="card">
-          <h2>${name}</h2>
-          <div class="progress">
-            <div class="bar" style="width:${percent}%"></div>
-          </div>
-          <p>${ytd} / ${goal} (${percent}%)</p>
-        </div>
-      `;
+      const person = {
+        name: c[0],
+        goal: Number(c[1]),
+        ytd: Number(c[2]),
+        halfway: c[6] === "TRUE",
+        goalHit: c[7] === "TRUE"
+      };
 
-      if (halfway && percent < 100) {
-        confetti({ particleCount: 150, spread: 90 });
-      }
-      if (goalHit) {
-        confetti({ particleCount: 300, spread: 120 });
-      }
+      teamTotal += person.ytd;
+      people.push(person);
     });
-  });
-</script>
 
-</body>
-</html>
+    const teamPercent = Math.round((teamTotal / TEAM_GOAL) * 100);
+
+    teamBar.innerHTML = `
+      <div class="card">
+        <h2>🏁 TEAM RACE TO ${TEAM_GOAL}</h2>
+        <div class="progress">
+          <div class="bar" style="width:${teamPercent}%"></div>
+        </div>
+        <p>${teamTotal} / ${TEAM_GOAL} (${teamPercent}%)</p>
+      </div>
+    `;
+
+    if (teamTotal >= TEAM_GOAL) {
+      confetti({ particleCount: 600, spread: 160 });
+    }
+
+    // STORE FOR NEXT PHASE
+    window.peopleData = people;
+    renderPeople();
+  });
+
+function renderPeople() {
+  const dash = document.getElementById("dashboard");
+  dash.innerHTML = "";
+
+  window.peopleData.forEach(p => {
+    const percent = Math.round((p.ytd / p.goal) * 100);
+
+    dash.innerHTML += `
+      <div class="card">
+        <h2>${p.name}</h2>
+        <div class="progress">
+          <div class="bar" style="width:${percent}%"></div>
+        </div>
+        <p>${p.ytd} / ${p.goal} (${percent}%)</p>
+      </div>
+    `;
+
+    if (p.halfway && percent < 100) {
+      confetti({ particleCount: 150 });
+    }
+    if (p.goalHit) {
+      confetti({ particleCount: 300, spread: 120 });
+    }
+  });
+}
+</script>
