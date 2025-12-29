@@ -93,6 +93,7 @@ h1{
 
 /* ================= PODIUM (RIGHT) ================= */
 #podium{
+  display:none;
   position:fixed;
   right:16px;
   top:120px;
@@ -123,7 +124,8 @@ h1{
 }
 
 /* ================= MVP (MATCH PODIUM SIZE) ================= */
-#mvp{
+#mvp{ 
+  display:none;
   position:fixed;
   left:16px;
   top:120px;
@@ -230,6 +232,10 @@ function render(people){
   dash.innerHTML="";
 
   const teamTotal=people.reduce((a,b)=>a+b.total,0);
+  const hasEnrollments = teamTotal > 0;
+  
+document.getElementById("mvp").style.display = hasEnrollments ? "block" : "none";
+document.getElementById("podium").style.display = hasEnrollments ? "block" : "none";
   const teamPct=pct(teamTotal,TEAM_GOAL);
   if(teamPct>=50) celebrate("team-half");
 
@@ -243,22 +249,37 @@ function render(people){
   people.sort((a,b)=>b.total-a.total);
 
   /* MVP */
-  const mvp=people[0];
-  document.getElementById("mvp").innerHTML=`
-    🏆 MVP
-    <strong>${mvp.name}</strong>
-    ${mvp.total} enrollments
+  const mvp = people.find(p => p.total > 0);
+
+document.getElementById("mvp").innerHTML = mvp ? `
+  🏆 MVP
+  <strong>${mvp.name}</strong>
+  ${mvp.total} enrollments
+` : `
+  🏆 MVP
+  <strong>Waiting for first enrollment…</strong>
+`;
+
+}
+
   `;
 
-  /* Podium */
-  document.getElementById("podium").innerHTML=`
-    <h3>🏁 Podium</h3>
-    ${people.slice(0,3).map((p,i)=>`
-      <div class="podium-row">
-        ${["🥇","🥈","🥉"][i]} ${p.name}
-        <span>${p.total}</span>
-      </div>`).join("")}
-  `;
+  const ranked = people.filter(p => p.total > 0);
+
+document.getElementById("podium").innerHTML = `
+  <h3>🏁 Podium</h3>
+  ${
+    ranked.length
+    ? ranked.slice(0,3).map((p,i)=>`
+        <div class="podium-row">
+          ${["🥇","🥈","🥉"][i]} ${p.name}
+          <span>${p.total}</span>
+        </div>
+      `).join("")
+    : `<div class="podium-row">Waiting for first enrollment…</div>`
+  }
+`;
+
 
   people.forEach((p,i)=>{
     const pPct=pct(p.total,p.goal);
