@@ -119,22 +119,6 @@ fetch(SHEET_URL)
     });
   });
 </script>
-
-    const rows = text.split("\n").slice(1);
-    const dash = document.getElementById("dashboard");
-
-    rows.forEach(row => {
-      if (!row) return;
-
-      const c = row.split(",");
-      const name = c[0];
-      const goal = Number(c[1]);
-      const ytd = Number(c[2]);
-      const halfway = c[6] === "TRUE";
-      const goalHit = c[7] === "TRUE";
-      const percent = Math.round((ytd / goal) * 100);
-
-      dash.innerHTML += `
         <div class="card">
           <h2>${name}</h2>
           <div class="progress">
@@ -142,16 +126,7 @@ fetch(SHEET_URL)
           </div>
           <p>${ytd} / ${goal} (${percent}%)</p>
         </div>
-      `;
-
-      if (halfway && percent < 100) {
-        confetti({ particleCount: 150, spread: 90 });
-      }
-      if (goalHit) {
-        confetti({ particleCount: 300, spread: 120 });
-      }
-    });
-  });
+      
 </script>
 
 </body>
