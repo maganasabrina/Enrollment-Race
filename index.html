@@ -2,32 +2,41 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🏁 Enrollment Race to 550</title>
 
-<!-- Confetti -->
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
-<!-- Sounds -->
-<audio id="halfSound" src="https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3"></audio>
-<audio id="goalSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"></audio>
 
 <style>
 body {
-  background: radial-gradient(circle at top, #020617, #000);
   font-family: Arial, sans-serif;
   color: white;
   text-align: center;
   padding: 30px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.04) 50%, transparent 50%),
+    linear-gradient(135deg, #020617, #0f172a);
+  background-size: 40px 40px;
 }
-h1 { margin-bottom: 25px; }
+
+h1 { margin-bottom: 20px; }
+
+.buttons button {
+  margin: 5px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
 
 .card {
   background: #1e293b;
-  width: 330px;
+  max-width: 360px;
   margin: 20px auto;
   padding: 20px;
   border-radius: 20px;
-  box-shadow: 0 12px 30px rgba(0,0,0,.45);
+  box-shadow: 0 12px 30px rgba(0,0,0,.5);
 }
 
 .progress {
@@ -40,30 +49,43 @@ h1 { margin-bottom: 25px; }
 
 .bar {
   height: 100%;
-  background: linear-gradient(90deg, #22c55e, #4ade80);
   position: relative;
-  transition: width 0.7s ease;
+  transition: width .6s ease;
 }
 
 .bar::after {
   content: "🏎️💨";
   position: absolute;
-  right: -12px;
-  top: -12px;
+  right: -14px;
+  top: -14px;
   font-size: 22px;
   transform: scaleX(-1);
 }
 
-.podium-1 { box-shadow: 0 0 25px gold; }
-.podium-2 { box-shadow: 0 0 25px silver; }
-.podium-3 { box-shadow: 0 0 25px #cd7f32; }
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.8);
+  align-items: center;
+  justify-content: center;
+}
 
-.buttons button {
-  margin: 5px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: none;
+.modal-content {
+  background: #0f172a;
+  padding: 20px;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 420px;
+}
+
+.close {
+  float: right;
   cursor: pointer;
+}
+
+@media(max-width:480px){
+  .buttons { display:flex; flex-direction:column; gap:8px; }
 }
 </style>
 </head>
@@ -73,97 +95,116 @@ h1 { margin-bottom: 25px; }
 <h1>🏁 Enrollment Race to 550</h1>
 
 <div class="buttons">
-  <button>Year to Date</button>
-  <button disabled>Monthly (Coming Soon)</button>
-  <button disabled>Weekly (Coming Soon)</button>
+  <button onclick="setView('ytd')">Year To Date</button>
+  <button onclick="setView('month')">This Month</button>
+  <button onclick="setView('week')">This Week</button>
 </div>
 
-<div id="team-goal"></div>
+<div id="team"></div>
 <div id="dashboard"></div>
 
+<div class="modal" id="popup">
+  <div class="modal-content">
+    <span class="close" onclick="closePopup()">✖</span>
+    <div id="popupContent"></div>
+  </div>
+</div>
+
 <script>
-const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=1984389436&single=true&output=csv";
 const TEAM_GOAL = 550;
+const YEARLY_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=1984389436&single=true&output=csv";
+const WEEKLY_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=0&single=true&output=csv";
 
-fetch(SHEET_URL)
-.then(res => res.text())
-.then(csv => {
-  const rows = csv.trim().split("\n").slice(1);
-  const dash = document.getElementById("dashboard");
-  const teamBar = document.getElementById("team-goal");
+const COLORS = {
+  "Leeah": "#22c55e",
+  "Marissa": "#3b82f6",
+  "Nitya": "#f59e0b",
+  "Chakri": "#ec4899"
+};
 
-  let people = [];
-  let teamTotal = 0;
+let view = "ytd";
+let weeklyData = [];
 
-  rows.forEach(r => {
-    const c = r.split(",");
-    if (!c[0] || isNaN(c[1]) || isNaN(c[2])) return;
+function setView(v){ view=v; load(); }
 
-    const p = {
-      name: c[0],
-      goal: Number(c[1]),
-      ytd: Number(c[2]),
-      halfway: c[6] === "TRUE",
-      goalHit: c[7] === "TRUE"
-    };
+function load(){
+  Promise.all([
+    fetch(YEARLY_CSV_URL).then(r=>r.text()),
+    fetch(WEEKLY_CSV_URL).then(r=>r.text())
+  ]).then(([y,w])=>{
+    weeklyData = w.trim().split("\n").slice(1).map(r=>r.split(","));
+    const people = y.trim().split("\n").slice(1).map(r=>{
+      const c=r.split(",");
+      return {name:c[0],goal:+c[1],ytd:+c[2],total:0};
+    });
 
-    teamTotal += p.ytd;
-    people.push(p);
+    const now=new Date();
+    people.forEach(p=>{
+      if(view==="ytd") p.total=p.ytd;
+      weeklyData.forEach(([d,n,v])=>{
+        if(n!==p.name) return;
+        const date=new Date(d);
+        if(view==="month" && date.getMonth()===now.getMonth()) p.total+=+v;
+        if(view==="week" && (now-date)/86400000<=7) p.total+=+v;
+      });
+    });
+
+    render(people);
   });
+}
 
-  // TEAM BAR
-  const teamPct = Math.round((teamTotal / TEAM_GOAL) * 100);
-  teamBar.innerHTML = `
+function render(people){
+  const dash=document.getElementById("dashboard");
+  const team=document.getElementById("team");
+  dash.innerHTML="";
+  const teamTotal=people.reduce((a,b)=>a+b.total,0);
+  const pct=Math.round(teamTotal/TEAM_GOAL*100);
+
+  team.innerHTML=`
     <div class="card">
-      <h2>🏁 TEAM RACE TO ${TEAM_GOAL}</h2>
+      <h2>🏁 TEAM PROGRESS</h2>
       <div class="progress">
-        <div class="bar" style="width:${teamPct}%"></div>
+        <div class="bar" style="width:${pct}%;background:#22c55e"></div>
       </div>
-      <p>${teamTotal} / ${TEAM_GOAL} (${teamPct}%)</p>
-    </div>
-  `;
+      <p>${teamTotal}/${TEAM_GOAL} (${pct}%)</p>
+    </div>`;
 
-  if (teamTotal >= TEAM_GOAL) {
-    document.getElementById("goalSound").play();
-    confetti({ particleCount: 700, spread: 170 });
-  }
+  people.sort((a,b)=>b.total/b.goal-a.total/a.goal);
 
-  // SORT
-  people.sort((a,b) => (b.ytd/b.goal) - (a.ytd/a.goal));
+  people.forEach(p=>{
+    const pc=Math.round(p.total/p.goal*100);
+    dash.innerHTML+=`
+      <div class="card" onclick="showPopup('${p.name}')">
+        <h2>${p.name}</h2>
+        <div class="progress">
+          <div class="bar" style="width:${pc}%;background:${COLORS[p.name]}"></div>
+        </div>
+        <p>${p.total}/${p.goal} (${pc}%)</p>
+      </div>`;
+  });
+}
 
-  dash.innerHTML = "";
-  people.forEach((p, i) => {
-    const pct = Math.round((p.ytd / p.goal) * 100);
-    const remaining = Math.max(p.goal - p.ytd, 0);
-
-    const card = document.createElement("div");
-    card.className = "card";
-    if (i === 0) card.classList.add("podium-1");
-    if (i === 1) card.classList.add("podium-2");
-    if (i === 2) card.classList.add("podium-3");
-
-    card.innerHTML = `
-      <h2>${p.name}</h2>
-      <div class="progress">
-        <div class="bar" style="width:${pct}%"></div>
-      </div>
-      <p>${p.ytd} / ${p.goal} (${pct}%)</p>
-      <p>${remaining} enrollments to 🎯</p>
-    `;
-
-    dash.appendChild(card);
-
-    if (p.halfway && pct < 100) {
-      document.getElementById("halfSound").play();
-      confetti({ particleCount: 120, spread: 80 });
-    }
-
-    if (p.goalHit) {
-      document.getElementById("goalSound").play();
-      confetti({ particleCount: 350, spread: 130 });
+function showPopup(name){
+  const now=new Date();
+  let total=0, rows="";
+  weeklyData.forEach(([d,n,v])=>{
+    const date=new Date(d);
+    if(n===name && date.getMonth()===now.getMonth()){
+      total+=+v;
+      rows+=`<p>${date.toLocaleDateString()}: ${v}</p>`;
     }
   });
-});
+  document.getElementById("popupContent").innerHTML=`
+    <h2>${name} — Monthly Breakdown</h2>
+    ${rows}
+    <hr>
+    <strong>Total This Month: ${total}</strong>`;
+  document.getElementById("popup").style.display="flex";
+}
+
+function closePopup(){ document.getElementById("popup").style.display="none"; }
+
+load();
 </script>
 
 </body>
