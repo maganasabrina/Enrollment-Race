@@ -11,11 +11,9 @@
 /* ================= CARTOON TRACK ================= */
 body{
   margin:0;
-  padding:30px;
+  padding:24px;
   font-family:Arial, sans-serif;
-  color:#0f172a;
   text-align:center;
-
   background:
     repeating-linear-gradient(
       90deg,
@@ -24,7 +22,6 @@ body{
       #000 14px,
       #000 28px
     ) top center / 100% 18px no-repeat,
-
     repeating-linear-gradient(
       90deg,
       transparent 0px,
@@ -32,13 +29,13 @@ body{
       rgba(255,255,255,.6) 70px,
       rgba(255,255,255,.6) 80px
     ),
-
-    linear-gradient(#9fe870 0%, #4ade80 100%);
+    linear-gradient(#86efac, #4ade80);
 }
 
-/* ================= LAYOUT ================= */
+/* ================= HEADER ================= */
 h1{ color:#dc2626; margin-bottom:14px; }
 
+/* ================= BUTTONS ================= */
 .buttons{
   position:sticky;
   top:10px;
@@ -46,11 +43,11 @@ h1{ color:#dc2626; margin-bottom:14px; }
   display:flex;
   justify-content:center;
   gap:10px;
-  margin-bottom:20px;
+  margin-bottom:18px;
 }
 
 button{
-  padding:10px 16px;
+  padding:10px 18px;
   border-radius:999px;
   border:none;
   font-weight:bold;
@@ -65,13 +62,29 @@ button{
   max-width:360px;
   margin:14px auto;
   padding:18px;
-  border-radius:20px;
-  box-shadow:0 10px 25px rgba(0,0,0,.2);
+  border-radius:22px;
+  box-shadow:0 12px 30px rgba(0,0,0,.25);
   border:4px solid transparent;
-  cursor:pointer;
 }
 
-.card h2{ margin:4px 0; }
+.team{ border-color:#dc2626; }
+.Leeah{ border-color:#fce00a; }
+.Marissa{ border-color:#ec4899; }
+.Chakri{ border-color:#f97316; }
+.Nitya{ border-color:#2563eb; }
+
+/* ================= AVATAR ================= */
+.avatar{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:24px;
+  background:#f3f4f6;
+  margin-right:8px;
+}
 
 /* ================= PROGRESS ================= */
 .progress{
@@ -94,6 +107,12 @@ button{
   right:-10px;
   top:-12px;
   font-size:22px;
+}
+
+/* ================= SMALL TEXT ================= */
+.meta{
+  font-size:14px;
+  opacity:.8;
 }
 
 /* ================= MODAL ================= */
@@ -119,17 +138,6 @@ button{
   cursor:pointer;
   font-size:20px;
 }
-
-/* ================= COLORS ================= */
-.team{ border-color:#dc2626; }
-.Leeah{ border-color:#fce00a; }
-.Marissa{ border-color:#ec4899; }
-.Chakri{ border-color:#f97316; }
-.Nitya{ border-color:#2563eb; }
-
-.badge{
-  font-size:22px;
-}
 </style>
 </head>
 
@@ -146,25 +154,20 @@ button{
 <div id="team"></div>
 <div id="dashboard"></div>
 
-<div class="modal" id="popup">
-  <div class="modal-content">
-    <span class="close" onclick="closePopup()">✖</span>
-    <div id="popupContent"></div>
-  </div>
-</div>
-
 <script>
 /* ================= CONFIG ================= */
 const TEAM_GOAL = 550;
-const YEARLY_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=1984389436&single=true&output=csv";
-const WEEKLY_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=0&single=true&output=csv";
 
-const COLORS = {
-  Leeah:"#fce00a",
-  Marissa:"#ec4899",
-  Chakri:"#f97316",
-  Nitya:"#2563eb",
-  team:"#dc2626"
+/* 🔁 REPLACE THESE */
+const YEARLY_CSV_URL = "PASTE_YOUR_YTD_CSV_URL_HERE";
+const WEEKLY_CSV_URL = "PASTE_YOUR_WEEKLY_CSV_URL_HERE";
+
+/* Cute avatars */
+const AVATARS = {
+  Leeah:"👩‍🦱",
+  Marissa:"👩‍🦰",
+  Chakri:"🧑‍💼",
+  Nitya:"👩‍💻"
 };
 
 let view="ytd";
@@ -178,7 +181,7 @@ function progressColor(pct){
 }
 
 function confettiPop(color){
-  confetti({ particleCount:140, spread:120, colors:[color] });
+  confetti({ particleCount:100, spread:120, colors:[color] });
 }
 
 /* ================= VIEW ================= */
@@ -191,26 +194,30 @@ fetch(YEARLY_CSV_URL).then(r=>r.text()),
 fetch(WEEKLY_CSV_URL).then(r=>r.text())
 ]).then(([y,w])=>{
 
-weeklyData=w.trim().split("\n").slice(1).map(r=>{
-const c=r.split(",");
-return{ date:new Date(c[0]), name:c[1], value:+c[2] };
-});
+weeklyData=w.trim().split("\n").slice(1)
+.map(row=>{
+  const c=row.split(",");
+  if(!c[0]||!c[1]) return null;
+  const val=parseInt(c[2],10);
+  if(isNaN(val)) return null;
+  return { date:new Date(c[0].trim()), name:c[1].trim(), value:val };
+}).filter(Boolean);
 
 const people=y.trim().split("\n").slice(1).map(r=>{
-const c=r.split(",");
-return{ name:c[0], goal:+c[1], ytd:+c[2], total:0 };
+  const c=r.split(",");
+  return { name:c[0].trim(), goal:+c[1]||0, ytd:+c[2]||0, total:0 };
 });
 
 const now=new Date();
 
 people.forEach(p=>{
-if(view==="ytd"){ p.total=p.ytd; return; }
-weeklyData.forEach(r=>{
-if(r.name!==p.name) return;
-const diff=(now-r.date)/86400000;
-if(view==="week" && diff<=7 && diff>=0) p.total+=r.value;
-if(view==="month" && r.date.getMonth()===now.getMonth()) p.total+=r.value;
-});
+  if(view==="ytd"){ p.total=p.ytd; return; }
+  weeklyData.forEach(r=>{
+    if(r.name!==p.name) return;
+    const diff=(now-r.date)/86400000;
+    if(view==="week"&&diff>=0&&diff<=7) p.total+=r.value;
+    if(view==="month"&&r.date.getMonth()===now.getMonth()) p.total+=r.value;
+  });
 });
 
 render(people);
@@ -222,43 +229,41 @@ function render(people){
 const dash=document.getElementById("dashboard");
 dash.innerHTML="";
 
-people.sort((a,b)=>b.total/b.goal-a.total/a.goal);
+people.sort((a,b)=>(b.total/b.goal)-(a.total/a.goal));
 
 const teamTotal=people.reduce((a,b)=>a+b.total,0);
-const teamPct=Math.round(teamTotal/TEAM_GOAL*100);
+const teamPct=TEAM_GOAL>0?Math.round(teamTotal/TEAM_GOAL*100):0;
 
 document.getElementById("team").innerHTML=`
 <div class="card team">
-<h2>🏁 Team Goal</h2>
-<div class="progress">
-<div class="bar" style="width:${Math.min(100,teamPct)}%;background:${progressColor(teamPct)}"></div>
-</div>
-<p>${teamTotal} / ${TEAM_GOAL} (${teamPct}%)</p>
-<p>🔥 ${TEAM_GOAL-teamTotal} to finish</p>
+  <h2>🏁 Team Goal</h2>
+  <div class="progress">
+    <div class="bar" style="width:${Math.min(100,teamPct)}%;background:${progressColor(teamPct)}"></div>
+  </div>
+  <p>${teamTotal} / ${TEAM_GOAL} (${teamPct}%)</p>
+  <p class="meta">🔥 ${Math.max(0,TEAM_GOAL-teamTotal)} to finish</p>
 </div>`;
 
-if(teamPct>=100) confettiPop(COLORS.team);
+if(teamPct>=100) confettiPop("#dc2626");
 
 people.forEach((p,i)=>{
-const pct=Math.round(p.total/p.goal*100);
-const badge=i===0?"🥇":i===1?"🥈":i===2?"🥉":"";
-if(pct>=100) confettiPop(COLORS[p.name]);
+  const pct=p.goal>0?Math.round(p.total/p.goal*100):0;
+  const badge=i===0?"🥇":i===1?"🥈":i===2?"🥉":"";
+  if(pct>=100) confettiPop("#22c55e");
 
 dash.innerHTML+=`
 <div class="card ${p.name}">
-<h2>${badge} ${p.name}</h2>
-<div class="progress">
-<div class="bar" style="width:${Math.min(100,pct)}%;background:${progressColor(pct)}"></div>
-</div>
-<p>${p.total} / ${p.goal} (${pct}%)</p>
-<p>⏱️ ${p.goal-p.total} to goal</p>
+  <h2>
+    <span class="avatar">${AVATARS[p.name]||"🏎️"}</span>
+    ${badge} ${p.name}
+  </h2>
+  <div class="progress">
+    <div class="bar" style="width:${Math.min(100,pct)}%;background:${progressColor(pct)}"></div>
+  </div>
+  <p>${p.total} / ${p.goal} (${pct}%)</p>
+  <p class="meta">⏱️ ${Math.max(0,p.goal-p.total)} to goal</p>
 </div>`;
 });
-}
-
-/* ================= MODAL ================= */
-function closePopup(){
-document.getElementById("popup").style.display="none";
 }
 
 /* ================= INIT ================= */
