@@ -8,129 +8,127 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <style>
-/* ================== RACE TRACK BACKGROUND ================== */
-body {
-  font-family: Arial, sans-serif;
-  color: white;
-  text-align: center;
-  padding: 30px;
+/* ================= CARTOON TRACK ================= */
+body{
+  margin:0;
+  padding:30px;
+  font-family:Arial, sans-serif;
+  color:#0f172a;
+  text-align:center;
 
   background:
-    /* Finish line */
     repeating-linear-gradient(
       90deg,
-      #ffffff 0px,
-      #ffffff 10px,
-      transparent 10px,
-      transparent 20px
-    ) top center / 100% 14px no-repeat,
+      #fff 0px,
+      #fff 14px,
+      #000 14px,
+      #000 28px
+    ) top center / 100% 18px no-repeat,
 
-    /* Yellow center divider */
-    linear-gradient(
-      90deg,
-      transparent 48%,
-      #facc15 48%,
-      #facc15 52%,
-      transparent 52%
-    ),
-
-    /* Lane stripes */
     repeating-linear-gradient(
       90deg,
-      transparent,
-      transparent 45px,
-      rgba(255,255,255,0.15) 45px,
-      rgba(255,255,255,0.15) 50px
+      transparent 0px,
+      transparent 70px,
+      rgba(255,255,255,.6) 70px,
+      rgba(255,255,255,.6) 80px
     ),
 
-    /* Asphalt */
-    linear-gradient(135deg, #0f172a, #020617);
-
-  background-size:
-    100% 14px,
-    100% 100%,
-    120px 100%,
-    cover;
+    linear-gradient(#9fe870 0%, #4ade80 100%);
 }
 
-/* ================== LAYOUT ================== */
-h1 { margin-bottom: 20px; }
+/* ================= LAYOUT ================= */
+h1{ color:#dc2626; margin-bottom:14px; }
 
-.buttons button {
-  margin: 6px;
-  padding: 10px 16px;
-  border-radius: 12px;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
+.buttons{
+  position:sticky;
+  top:10px;
+  z-index:10;
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin-bottom:20px;
 }
 
-/* ================== CARDS ================== */
-.card {
-  background: rgba(30,41,59,0.95);
-  max-width: 360px;
-  margin: 20px auto;
-  padding: 20px;
-  border-radius: 20px;
-  border: 1px solid rgba(255,255,255,0.08);
-  backdrop-filter: blur(4px);
-  box-shadow: 0 14px 35px rgba(0,0,0,.55);
+button{
+  padding:10px 16px;
+  border-radius:999px;
+  border:none;
+  font-weight:bold;
+  cursor:pointer;
+  background:#0f172a;
+  color:white;
 }
 
-/* ================== PROGRESS ================== */
-.progress {
-  background: #334155;
-  height: 22px;
-  border-radius: 12px;
-  overflow: hidden;
-  margin: 12px 0;
+/* ================= CARDS ================= */
+.card{
+  background:white;
+  max-width:360px;
+  margin:14px auto;
+  padding:18px;
+  border-radius:20px;
+  box-shadow:0 10px 25px rgba(0,0,0,.2);
+  border:4px solid transparent;
+  cursor:pointer;
 }
 
-.bar {
-  height: 100%;
-  position: relative;
-  transition: width .6s ease;
+.card h2{ margin:4px 0; }
+
+/* ================= PROGRESS ================= */
+.progress{
+  background:#e5e7eb;
+  height:22px;
+  border-radius:14px;
+  overflow:hidden;
+  margin:10px 0;
 }
 
-.bar::after {
-  content: "🏎️💨";
-  position: absolute;
-  right: -14px;
-  top: -14px;
-  font-size: 22px;
-  transform: scaleX(-1);
+.bar{
+  height:100%;
+  transition:width .6s ease;
+  position:relative;
 }
 
-/* ================== MODAL ================== */
-.modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.85);
-  align-items: center;
-  justify-content: center;
+.bar::after{
+  content:"🏎️";
+  position:absolute;
+  right:-10px;
+  top:-12px;
+  font-size:22px;
 }
 
-.modal-content {
-  background: #0f172a;
-  padding: 22px;
-  border-radius: 16px;
-  width: 90%;
-  max-width: 420px;
+/* ================= MODAL ================= */
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.8);
+  align-items:center;
+  justify-content:center;
 }
 
-.close {
-  float: right;
-  cursor: pointer;
+.modal-content{
+  background:white;
+  padding:20px;
+  border-radius:16px;
+  width:90%;
+  max-width:420px;
 }
 
-/* ================== MOBILE ================== */
-@media(max-width:480px){
-  .buttons {
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-  }
+.close{
+  float:right;
+  cursor:pointer;
+  font-size:20px;
+}
+
+/* ================= COLORS ================= */
+.team{ border-color:#dc2626; }
+.Leeah{ border-color:#fce00a; }
+.Marissa{ border-color:#ec4899; }
+.Chakri{ border-color:#f97316; }
+.Nitya{ border-color:#2563eb; }
+
+.badge{
+  font-size:22px;
 }
 </style>
 </head>
@@ -162,135 +160,105 @@ const YEARLY_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0G
 const WEEKLY_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=0&single=true&output=csv";
 
 const COLORS = {
-  "Leeah": "#FCE00A",
-  "Marissa": "#FFC0CB",
-  "Nitya": "#0935E3",
-  "Chakri": "#E32D09"
+  Leeah:"#fce00a",
+  Marissa:"#ec4899",
+  Chakri:"#f97316",
+  Nitya:"#2563eb",
+  team:"#dc2626"
 };
 
-let view = "ytd";
-let weeklyData = [];
+let view="ytd";
+let weeklyData=[];
 
-/* ================= VIEW SWITCH ================= */
-function setView(v){
-  view = v;
-  loadData();
+/* ================= HELPERS ================= */
+function progressColor(pct){
+  pct=Math.min(100,pct);
+  const hue=50+(pct*70/100);
+  return `hsl(${hue},90%,45%)`;
 }
 
-/* ================= LOAD DATA ================= */
+function confettiPop(color){
+  confetti({ particleCount:140, spread:120, colors:[color] });
+}
+
+/* ================= VIEW ================= */
+function setView(v){ view=v; loadData(); }
+
+/* ================= LOAD ================= */
 function loadData(){
-  Promise.all([
-    fetch(YEARLY_CSV_URL).then(r=>r.text()),
-    fetch(WEEKLY_CSV_URL).then(r=>r.text())
-  ]).then(([y,w])=>{
+Promise.all([
+fetch(YEARLY_CSV_URL).then(r=>r.text()),
+fetch(WEEKLY_CSV_URL).then(r=>r.text())
+]).then(([y,w])=>{
 
-    /* WEEKLY CSV (safe parse) */
-    weeklyData = w.trim().split("\n").slice(1)
-      .map(row=>{
-        const c=row.split(",");
-        if(!c[0]||!c[1]||isNaN(c[2])) return null;
-        return {
-          date:new Date(c[0]),
-          name:c[1].trim(),
-          value:parseInt(c[2],10)
-        };
-      }).filter(Boolean);
+weeklyData=w.trim().split("\n").slice(1).map(r=>{
+const c=r.split(",");
+return{ date:new Date(c[0]), name:c[1], value:+c[2] };
+});
 
-    /* YEARLY CSV */
-    const people = y.trim().split("\n").slice(1).map(r=>{
-      const c=r.split(",");
-      return {
-        name:c[0].trim(),
-        goal:Number(c[1]),
-        ytd:Number(c[2]),
-        total:0
-      };
-    });
+const people=y.trim().split("\n").slice(1).map(r=>{
+const c=r.split(",");
+return{ name:c[0], goal:+c[1], ytd:+c[2], total:0 };
+});
 
-    const now=new Date();
+const now=new Date();
 
-    people.forEach(p=>{
-      if(view==="ytd"){
-        p.total=p.ytd;
-        return;
-      }
-      weeklyData.forEach(r=>{
-        if(r.name!==p.name) return;
-        const diff=(now-r.date)/86400000;
+people.forEach(p=>{
+if(view==="ytd"){ p.total=p.ytd; return; }
+weeklyData.forEach(r=>{
+if(r.name!==p.name) return;
+const diff=(now-r.date)/86400000;
+if(view==="week" && diff<=7 && diff>=0) p.total+=r.value;
+if(view==="month" && r.date.getMonth()===now.getMonth()) p.total+=r.value;
+});
+});
 
-        if(view==="week" && diff>=0 && diff<=7) p.total+=r.value;
-        if(view==="month" &&
-           r.date.getMonth()===now.getMonth() &&
-           r.date.getFullYear()===now.getFullYear())
-           p.total+=r.value;
-      });
-    });
-
-    render(people);
-  });
+render(people);
+});
 }
 
 /* ================= RENDER ================= */
 function render(people){
-  const dash=document.getElementById("dashboard");
-  const team=document.getElementById("team");
-  dash.innerHTML="";
+const dash=document.getElementById("dashboard");
+dash.innerHTML="";
 
-  const teamTotal=people.reduce((a,b)=>a+b.total,0);
-  const teamPct=Math.round(teamTotal/TEAM_GOAL*100);
+people.sort((a,b)=>b.total/b.goal-a.total/a.goal);
 
-  team.innerHTML=`
-    <div class="card">
-      <h2>🏁 Team Progress</h2>
-      <div class="progress">
-        <div class="bar" style="width:${teamPct}%;background:#22c55e"></div>
-      </div>
-      <p>${teamTotal} / ${TEAM_GOAL} (${teamPct}%)</p>
-    </div>
-  `;
+const teamTotal=people.reduce((a,b)=>a+b.total,0);
+const teamPct=Math.round(teamTotal/TEAM_GOAL*100);
 
-  people.sort((a,b)=>b.total/b.goal-a.total/a.goal);
+document.getElementById("team").innerHTML=`
+<div class="card team">
+<h2>🏁 Team Goal</h2>
+<div class="progress">
+<div class="bar" style="width:${Math.min(100,teamPct)}%;background:${progressColor(teamPct)}"></div>
+</div>
+<p>${teamTotal} / ${TEAM_GOAL} (${teamPct}%)</p>
+<p>🔥 ${TEAM_GOAL-teamTotal} to finish</p>
+</div>`;
 
-  people.forEach(p=>{
-    const pct=Math.round(p.total/p.goal*100);
-    dash.innerHTML+=`
-      <div class="card" onclick="showPopup('${p.name}')">
-        <h2>${p.name}</h2>
-        <div class="progress">
-          <div class="bar" style="width:${pct}%;background:${COLORS[p.name]||"#22c55e"}"></div>
-        </div>
-        <p>${p.total} / ${p.goal} (${pct}%)</p>
-      </div>
-    `;
-  });
+if(teamPct>=100) confettiPop(COLORS.team);
+
+people.forEach((p,i)=>{
+const pct=Math.round(p.total/p.goal*100);
+const badge=i===0?"🥇":i===1?"🥈":i===2?"🥉":"";
+if(pct>=100) confettiPop(COLORS[p.name]);
+
+dash.innerHTML+=`
+<div class="card ${p.name}">
+<h2>${badge} ${p.name}</h2>
+<div class="progress">
+<div class="bar" style="width:${Math.min(100,pct)}%;background:${progressColor(pct)}"></div>
+</div>
+<p>${p.total} / ${p.goal} (${pct}%)</p>
+<p>⏱️ ${p.goal-p.total} to goal</p>
+</div>`;
+});
 }
 
-/* ================= POPUP ================= */
-function showPopup(name){
-  const now=new Date();
-  let rows="", total=0;
-
-  weeklyData.forEach(r=>{
-    if(r.name===name &&
-       r.date.getMonth()===now.getMonth() &&
-       r.date.getFullYear()===now.getFullYear()){
-      total+=r.value;
-      rows+=`<p>${r.date.toLocaleDateString()}: ${r.value}</p>`;
-    }
-  });
-
-  document.getElementById("popupContent").innerHTML=`
-    <h2>${name} — Monthly Breakdown</h2>
-    ${rows || "<p>No activity yet</p>"}
-    <hr>
-    <strong>Total this month: ${total}</strong>
-  `;
-
-  document.getElementById("popup").style.display="flex";
-}
-
+/* ================= MODAL ================= */
 function closePopup(){
-  document.getElementById("popup").style.display="none";
+document.getElementById("popup").style.display="none";
 }
 
 /* ================= INIT ================= */
