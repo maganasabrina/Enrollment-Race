@@ -1,53 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>🏁 Enrollment Race to 550</title>
+<meta charset="UTF-8">
+<title>🏁 Enrollment Race to 550</title>
 
-  <!-- Confetti -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<!-- Confetti -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: radial-gradient(circle at top, #020617, #000);
-      color: white;
-      text-align: center;
-      padding: 30px;
-    }
+<!-- Sounds -->
+<audio id="halfSound" src="https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3"></audio>
+<audio id="goalSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"></audio>
 
-    h1 {
-      margin-bottom: 30px;
-    }
+<style>
+body {
+  background: radial-gradient(circle at top, #020617, #000);
+  font-family: Arial, sans-serif;
+  color: white;
+  text-align: center;
+  padding: 30px;
+}
+h1 { margin-bottom: 25px; }
 
-    .card {
-      background: #1e293b;
-      margin: 20px auto;
-      padding: 20px;
-      border-radius: 18px;
-      width: 320px;
-      box-shadow: 0 10px 25px rgba(0,0,0,.4);
-    }
+.card {
+  background: #1e293b;
+  width: 330px;
+  margin: 20px auto;
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: 0 12px 30px rgba(0,0,0,.45);
+}
 
-    .progress {
-      background: #334155;
-      height: 20px;
-      border-radius: 10px;
-      overflow: hidden;
-      margin: 12px 0;
-    }
+.progress {
+  background: #334155;
+  height: 22px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 12px 0;
+}
 
-    .bar {
-      height: 100%;
-      background: linear-gradient(90deg, #22c55e, #4ade80);
-      transition: width 0.6s ease;
-    }
-  </style>
+.bar {
+  height: 100%;
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+  position: relative;
+  transition: width 0.7s ease;
+}
+
+.bar::after {
+  content: "🚗";
+  position: absolute;
+  right: -12px;
+  top: -12px;
+  font-size: 22px;
+}
+
+.podium-1 { box-shadow: 0 0 25px gold; }
+.podium-2 { box-shadow: 0 0 25px silver; }
+.podium-3 { box-shadow: 0 0 25px #cd7f32; }
+
+.buttons button {
+  margin: 5px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+</style>
 </head>
 
 <body>
 
 <h1>🏁 Enrollment Race to 550</h1>
+
+<div class="buttons">
+  <button>Year to Date</button>
+  <button disabled>Monthly (Coming Soon)</button>
+  <button disabled>Weekly (Coming Soon)</button>
+</div>
 
 <div id="team-goal"></div>
 <div id="dashboard"></div>
@@ -57,77 +85,84 @@ const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5Rzr
 const TEAM_GOAL = 550;
 
 fetch(SHEET_URL)
-  .then(response => response.text())
-  .then(csv => {
-    const rows = csv.trim().split("\n").slice(1);
-    const dashboard = document.getElementById("dashboard");
-    const teamGoal = document.getElementById("team-goal");
+.then(res => res.text())
+.then(csv => {
+  const rows = csv.trim().split("\n").slice(1);
+  const dash = document.getElementById("dashboard");
+  const teamBar = document.getElementById("team-goal");
 
-    let teamTotal = 0;
-    let people = [];
+  let people = [];
+  let teamTotal = 0;
 
-    rows.forEach(row => {
-      const cols = row.split(",");
+  rows.forEach(r => {
+    const c = r.split(",");
+    if (!c[0] || isNaN(c[1]) || isNaN(c[2])) return;
 
-      if (!cols[0] || isNaN(cols[1]) || isNaN(cols[2])) return;
+    const p = {
+      name: c[0],
+      goal: Number(c[1]),
+      ytd: Number(c[2]),
+      halfway: c[6] === "TRUE",
+      goalHit: c[7] === "TRUE"
+    };
 
-      const person = {
-        name: cols[0],
-        goal: Number(cols[1]),
-        ytd: Number(cols[2]),
-        halfway: cols[6] === "TRUE",
-        goalHit: cols[7] === "TRUE"
-      };
+    teamTotal += p.ytd;
+    people.push(p);
+  });
 
-      teamTotal += person.ytd;
-      people.push(person);
-    });
-
-    /* TEAM BAR */
-    const teamPercent = Math.round((teamTotal / TEAM_GOAL) * 100);
-
-    teamGoal.innerHTML = `
-      <div class="card">
-        <h2>🏁 TEAM RACE TO ${TEAM_GOAL}</h2>
-        <div class="progress">
-          <div class="bar" style="width:${teamPercent}%"></div>
-        </div>
-        <p>${teamTotal} / ${TEAM_GOAL} (${teamPercent}%)</p>
+  // TEAM BAR
+  const teamPct = Math.round((teamTotal / TEAM_GOAL) * 100);
+  teamBar.innerHTML = `
+    <div class="card">
+      <h2>🏁 TEAM RACE TO ${TEAM_GOAL}</h2>
+      <div class="progress">
+        <div class="bar" style="width:${teamPct}%"></div>
       </div>
+      <p>${teamTotal} / ${TEAM_GOAL} (${teamPct}%)</p>
+    </div>
+  `;
+
+  if (teamTotal >= TEAM_GOAL) {
+    document.getElementById("goalSound").play();
+    confetti({ particleCount: 700, spread: 170 });
+  }
+
+  // SORT
+  people.sort((a,b) => (b.ytd/b.goal) - (a.ytd/a.goal));
+
+  dash.innerHTML = "";
+  people.forEach((p, i) => {
+    const pct = Math.round((p.ytd / p.goal) * 100);
+    const remaining = Math.max(p.goal - p.ytd, 0);
+
+    const card = document.createElement("div");
+    card.className = "card";
+    if (i === 0) card.classList.add("podium-1");
+    if (i === 1) card.classList.add("podium-2");
+    if (i === 2) card.classList.add("podium-3");
+
+    card.innerHTML = `
+      <h2>${p.name}</h2>
+      <div class="progress">
+        <div class="bar" style="width:${pct}%"></div>
+      </div>
+      <p>${p.ytd} / ${p.goal} (${pct}%)</p>
+      <p>${remaining} enrollments to 🎯</p>
     `;
 
-    if (teamTotal >= TEAM_GOAL) {
-      confetti({ particleCount: 600, spread: 160 });
+    dash.appendChild(card);
+
+    if (p.halfway && pct < 100) {
+      document.getElementById("halfSound").play();
+      confetti({ particleCount: 120, spread: 80 });
     }
 
-    /* SORT LEADERBOARD */
-    people.sort((a, b) => (b.ytd / b.goal) - (a.ytd / a.goal));
-
-    /* RENDER PEOPLE */
-    dashboard.innerHTML = "";
-    people.forEach(p => {
-      const percent = Math.round((p.ytd / p.goal) * 100);
-
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <h2>${p.name}</h2>
-        <div class="progress">
-          <div class="bar" style="width:${percent}%"></div>
-        </div>
-        <p>${p.ytd} / ${p.goal} (${percent}%)</p>
-      `;
-
-      dashboard.appendChild(card);
-
-      if (p.halfway && percent < 100) {
-        confetti({ particleCount: 150, spread: 90 });
-      }
-      if (p.goalHit) {
-        confetti({ particleCount: 300, spread: 120 });
-      }
-    });
+    if (p.goalHit) {
+      document.getElementById("goalSound").play();
+      confetti({ particleCount: 350, spread: 130 });
+    }
   });
+});
 </script>
 
 </body>
