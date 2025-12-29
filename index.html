@@ -1,44 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>🏁 Enrollment Race to 550</title>
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <style>
+/* ================== RACE TRACK BACKGROUND ================== */
 body {
   font-family: Arial, sans-serif;
   color: white;
   text-align: center;
   padding: 30px;
+
   background:
-    linear-gradient(90deg, rgba(255,255,255,0.04) 50%, transparent 50%),
-    linear-gradient(135deg, #020617, #0f172a);
-  background-size: 40px 40px;
+    /* Finish line */
+    repeating-linear-gradient(
+      90deg,
+      #ffffff 0px,
+      #ffffff 10px,
+      transparent 10px,
+      transparent 20px
+    ) top center / 100% 14px no-repeat,
+
+    /* Yellow center divider */
+    linear-gradient(
+      90deg,
+      transparent 48%,
+      #facc15 48%,
+      #facc15 52%,
+      transparent 52%
+    ),
+
+    /* Lane stripes */
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 45px,
+      rgba(255,255,255,0.15) 45px,
+      rgba(255,255,255,0.15) 50px
+    ),
+
+    /* Asphalt */
+    linear-gradient(135deg, #0f172a, #020617);
+
+  background-size:
+    100% 14px,
+    100% 100%,
+    120px 100%,
+    cover;
 }
 
+/* ================== LAYOUT ================== */
 h1 { margin-bottom: 20px; }
 
 .buttons button {
-  margin: 5px;
-  padding: 10px 14px;
-  border-radius: 10px;
+  margin: 6px;
+  padding: 10px 16px;
+  border-radius: 12px;
   border: none;
   font-weight: bold;
   cursor: pointer;
 }
 
+/* ================== CARDS ================== */
 .card {
-  background: #1e293b;
+  background: rgba(30,41,59,0.95);
   max-width: 360px;
   margin: 20px auto;
   padding: 20px;
   border-radius: 20px;
-  box-shadow: 0 12px 30px rgba(0,0,0,.5);
+  border: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 14px 35px rgba(0,0,0,.55);
 }
 
+/* ================== PROGRESS ================== */
 .progress {
   background: #334155;
   height: 22px;
@@ -62,19 +101,20 @@ h1 { margin-bottom: 20px; }
   transform: scaleX(-1);
 }
 
+/* ================== MODAL ================== */
 .modal {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.8);
+  background: rgba(0,0,0,.85);
   align-items: center;
   justify-content: center;
 }
 
 .modal-content {
   background: #0f172a;
-  padding: 20px;
-  border-radius: 15px;
+  padding: 22px;
+  border-radius: 16px;
   width: 90%;
   max-width: 420px;
 }
@@ -84,8 +124,13 @@ h1 { margin-bottom: 20px; }
   cursor: pointer;
 }
 
+/* ================== MOBILE ================== */
 @media(max-width:480px){
-  .buttons { display:flex; flex-direction:column; gap:8px; }
+  .buttons {
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
 }
 </style>
 </head>
@@ -95,7 +140,7 @@ h1 { margin-bottom: 20px; }
 <h1>🏁 Enrollment Race to 550</h1>
 
 <div class="buttons">
-  <button onclick="setView('ytd')">Year To Date</button>
+  <button onclick="setView('ytd')">Year to Date</button>
   <button onclick="setView('month')">This Month</button>
   <button onclick="setView('week')">This Week</button>
 </div>
@@ -111,9 +156,10 @@ h1 { margin-bottom: 20px; }
 </div>
 
 <script>
+/* ================= CONFIG ================= */
 const TEAM_GOAL = 550;
-const YEARLY_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=1984389436&single=true&output=csv";
-const WEEKLY_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=0&single=true&output=csv";
+const YEARLY_CSV_URL = "PASTE_YEARLY_CSV_HERE";
+const WEEKLY_CSV_URL = "PASTE_WEEKLY_CSV_HERE";
 
 const COLORS = {
   "Leeah": "#22c55e",
@@ -125,27 +171,58 @@ const COLORS = {
 let view = "ytd";
 let weeklyData = [];
 
-function setView(v){ view=v; load(); }
+/* ================= VIEW SWITCH ================= */
+function setView(v){
+  view = v;
+  loadData();
+}
 
-function load(){
+/* ================= LOAD DATA ================= */
+function loadData(){
   Promise.all([
     fetch(YEARLY_CSV_URL).then(r=>r.text()),
     fetch(WEEKLY_CSV_URL).then(r=>r.text())
   ]).then(([y,w])=>{
-    weeklyData = w.trim().split("\n").slice(1).map(r=>r.split(","));
+
+    /* WEEKLY CSV (safe parse) */
+    weeklyData = w.trim().split("\n").slice(1)
+      .map(row=>{
+        const c=row.split(",");
+        if(!c[0]||!c[1]||isNaN(c[2])) return null;
+        return {
+          date:new Date(c[0]),
+          name:c[1].trim(),
+          value:parseInt(c[2],10)
+        };
+      }).filter(Boolean);
+
+    /* YEARLY CSV */
     const people = y.trim().split("\n").slice(1).map(r=>{
       const c=r.split(",");
-      return {name:c[0],goal:+c[1],ytd:+c[2],total:0};
+      return {
+        name:c[0].trim(),
+        goal:Number(c[1]),
+        ytd:Number(c[2]),
+        total:0
+      };
     });
 
     const now=new Date();
+
     people.forEach(p=>{
-      if(view==="ytd") p.total=p.ytd;
-      weeklyData.forEach(([d,n,v])=>{
-        if(n!==p.name) return;
-        const date=new Date(d);
-        if(view==="month" && date.getMonth()===now.getMonth()) p.total+=+v;
-        if(view==="week" && (now-date)/86400000<=7) p.total+=+v;
+      if(view==="ytd"){
+        p.total=p.ytd;
+        return;
+      }
+      weeklyData.forEach(r=>{
+        if(r.name!==p.name) return;
+        const diff=(now-r.date)/86400000;
+
+        if(view==="week" && diff>=0 && diff<=7) p.total+=r.value;
+        if(view==="month" &&
+           r.date.getMonth()===now.getMonth() &&
+           r.date.getFullYear()===now.getFullYear())
+           p.total+=r.value;
       });
     });
 
@@ -153,58 +230,71 @@ function load(){
   });
 }
 
+/* ================= RENDER ================= */
 function render(people){
   const dash=document.getElementById("dashboard");
   const team=document.getElementById("team");
   dash.innerHTML="";
+
   const teamTotal=people.reduce((a,b)=>a+b.total,0);
-  const pct=Math.round(teamTotal/TEAM_GOAL*100);
+  const teamPct=Math.round(teamTotal/TEAM_GOAL*100);
 
   team.innerHTML=`
     <div class="card">
-      <h2>🏁 TEAM PROGRESS</h2>
+      <h2>🏁 Team Progress</h2>
       <div class="progress">
-        <div class="bar" style="width:${pct}%;background:#22c55e"></div>
+        <div class="bar" style="width:${teamPct}%;background:#22c55e"></div>
       </div>
-      <p>${teamTotal}/${TEAM_GOAL} (${pct}%)</p>
-    </div>`;
+      <p>${teamTotal} / ${TEAM_GOAL} (${teamPct}%)</p>
+    </div>
+  `;
 
   people.sort((a,b)=>b.total/b.goal-a.total/a.goal);
 
   people.forEach(p=>{
-    const pc=Math.round(p.total/p.goal*100);
+    const pct=Math.round(p.total/p.goal*100);
     dash.innerHTML+=`
       <div class="card" onclick="showPopup('${p.name}')">
         <h2>${p.name}</h2>
         <div class="progress">
-          <div class="bar" style="width:${pc}%;background:${COLORS[p.name]}"></div>
+          <div class="bar" style="width:${pct}%;background:${COLORS[p.name]||"#22c55e"}"></div>
         </div>
-        <p>${p.total}/${p.goal} (${pc}%)</p>
-      </div>`;
+        <p>${p.total} / ${p.goal} (${pct}%)</p>
+      </div>
+    `;
   });
 }
 
+/* ================= POPUP ================= */
 function showPopup(name){
   const now=new Date();
-  let total=0, rows="";
-  weeklyData.forEach(([d,n,v])=>{
-    const date=new Date(d);
-    if(n===name && date.getMonth()===now.getMonth()){
-      total+=+v;
-      rows+=`<p>${date.toLocaleDateString()}: ${v}</p>`;
+  let rows="", total=0;
+
+  weeklyData.forEach(r=>{
+    if(r.name===name &&
+       r.date.getMonth()===now.getMonth() &&
+       r.date.getFullYear()===now.getFullYear()){
+      total+=r.value;
+      rows+=`<p>${r.date.toLocaleDateString()}: ${r.value}</p>`;
     }
   });
+
   document.getElementById("popupContent").innerHTML=`
     <h2>${name} — Monthly Breakdown</h2>
-    ${rows}
+    ${rows || "<p>No activity yet</p>"}
     <hr>
-    <strong>Total This Month: ${total}</strong>`;
+    <strong>Total this month: ${total}</strong>
+  `;
+
   document.getElementById("popup").style.display="flex";
 }
 
-function closePopup(){ document.getElementById("popup").style.display="none"; }
+function closePopup(){
+  document.getElementById("popup").style.display="none";
+}
 
-load();
+/* ================= INIT ================= */
+loadData();
 </script>
 
 </body>
