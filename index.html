@@ -9,12 +9,10 @@
 
 <style>
 
-/* ✅ REMOVE BOTTOM SCROLLBAR */
-html, body {
-  overflow-x: hidden;
-}
+/* ================= SAFETY ================= */
+html,body{overflow-x:hidden}
 
-/* ================= CHECKERED FINISH LINE ================= */
+/* ================= CHECKERED FINISH ================= */
 body::before{
   content:"";
   position:fixed;
@@ -23,7 +21,7 @@ body::before{
   z-index:999;
 }
 
-/* ================= BASE RACETRACK ================= */
+/* ================= BASE TRACK ================= */
 body{
   margin:0;
   padding:60px 14px 60px;
@@ -34,26 +32,18 @@ body{
   text-align:center;
 }
 
-/* ================= HOLIDAY THEMES ================= */
+/* ================= HOLIDAYS ================= */
 body.us-holiday{
-  background:repeating-linear-gradient(
-    90deg,#ef4444 0 40px,#fff 40px 80px,#2563eb 80px 120px
-  );
+  background:repeating-linear-gradient(90deg,#ef4444 0 40px,#fff 40px 80px,#2563eb 80px 120px);
 }
 body.mx-holiday{
-  background:repeating-linear-gradient(
-    90deg,#16a34a 0 40px,#fff 40px 80px,#dc2626 80px 120px
-  );
+  background:repeating-linear-gradient(90deg,#16a34a 0 40px,#fff 40px 80px,#dc2626 80px 120px);
 }
 body.in-holiday{
-  background:repeating-linear-gradient(
-    90deg,#f59e0b 0 40px,#fff 40px 80px,#16a34a 80px 120px
-  );
+  background:repeating-linear-gradient(90deg,#f59e0b 0 40px,#fff 40px 80px,#16a34a 80px 120px);
 }
 body.ph-holiday{
-  background:repeating-linear-gradient(
-    90deg,#1d4ed8 0 40px,#fff 40px 80px,#dc2626 80px 120px
-  );
+  background:repeating-linear-gradient(90deg,#1d4ed8 0 40px,#fff 40px 80px,#dc2626 80px 120px);
 }
 
 /* ================= TITLE ================= */
@@ -61,6 +51,8 @@ h1{
   color:#ef4444;
   font-size:42px;
   margin-bottom:16px;
+  letter-spacing:.5px;
+  text-shadow:0 3px 8px rgba(0,0,0,.15);
   animation:titlePulse 2.5s infinite;
 }
 @keyframes titlePulse{
@@ -76,6 +68,10 @@ h1{
   border:none;
   font-weight:bold;
   cursor:pointer;
+}
+.buttons button.active{
+  background:#22c55e;
+  color:white;
 }
 
 /* ================= CARDS ================= */
@@ -97,11 +93,12 @@ h1{
   border-radius:14px;
   overflow:hidden;
   margin:14px 0;
+  position:relative;
 }
 .bar{
   height:100%;
   background:linear-gradient(90deg,#facc15,#22c55e);
-  transition:width .6s ease;
+  transition:width .6s cubic-bezier(.34,1.56,.64,1);
   position:relative;
 }
 .bar::after{
@@ -125,7 +122,7 @@ h1{
   to{transform:scale(1);opacity:1}
 }
 
-/* ================= MVP & PODIUM ================= */
+/* ================= MVP / PODIUM ================= */
 #mvp,#podium{
   position:fixed;
   top:120px;
@@ -154,7 +151,6 @@ h1{
   0%,100%{transform:translateY(0)}
   50%{transform:translateY(-6px)}
 }
-
 .podium-row{
   display:flex;
   justify-content:space-between;
@@ -163,10 +159,7 @@ h1{
 }
 
 /* ================= MANAGERS ================= */
-#managers h2{
-  color:#1d4ed8;
-  margin-top:30px;
-}
+#managers h2{color:#1d4ed8;margin-top:30px}
 
 /* ================= LAP COUNTER ================= */
 #lapCounter{
@@ -181,14 +174,12 @@ h1{
 }
 
 /* ================= SPONSOR ================= */
-#sponsor{
-  position:fixed;
-  bottom:16px;
-  left:16px;
-}
-#sponsor img{
-  width:120px;
-  opacity:.9;
+#sponsor{position:fixed;bottom:16px;left:16px}
+#sponsor img{max-width:120px;height:auto;opacity:.9}
+
+/* ================= REDUCED MOTION ================= */
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
 }
 </style>
 </head>
@@ -198,15 +189,15 @@ h1{
 <h1>🏁 Enrollment Race to 550</h1>
 
 <div class="buttons">
-  <button onclick="setView('ytd')">Year to Date</button>
-  <button onclick="setView('month')">This Month</button>
-  <button onclick="setView('week')">This Week</button>
+  <button onclick="setView('ytd',this)">Year to Date</button>
+  <button class="active" onclick="setView('month',this)">This Month</button>
+  <button onclick="setView('week',this)">This Week</button>
 </div>
 
 <div id="mvp"></div>
 <div id="podium"></div>
 <div id="team"></div>
-<div id="dashboard"></div>
+<div id="dashboard"><p>🏎️ Loading race data…</p></div>
 <div id="managers"></div>
 <div id="lapCounter"></div>
 
@@ -223,8 +214,9 @@ const YEARLY_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5Rz
 const WEEKLY_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=0&single=true&output=csv";
 
 const NAME_COLORS = {
-  Leeah:"#facc15", Marissa:"#f9a8d4", Chakri:"#fb923c", Nitya:"#2563eb",
-  Sabrina:"#22c55e", Teresita:"#93c5fd", Edward:"#e5e7eb"
+  Leeah:"#facc15", Marissa:"#f9a8d4", Chakri:"#fb923c",
+  Nitya:"#2563eb", Sabrina:"#22c55e",
+  Teresita:"#93c5fd", Edward:"#e5e7eb"
 };
 
 let view="month", weeklyData=[];
@@ -237,8 +229,8 @@ function celebrate(key){
   localStorage.setItem(key,"done");
 }
 
-/* ================= HOLIDAY AUTO DETECT ================= */
-(function(){
+/* ================= HOLIDAY AUTO ================= */
+(()=>{
   const d=new Date(),m=d.getMonth()+1,day=d.getDate();
   if(m===7&&day===4)document.body.classList.add("us-holiday");
   if(m===5&&day===5||m===9&&day===16)document.body.classList.add("mx-holiday");
@@ -247,90 +239,117 @@ function celebrate(key){
 })();
 
 /* ================= VIEW ================= */
-function setView(v){view=v;loadData();}
+function setView(v,btn){
+  view=v;
+  document.querySelectorAll(".buttons button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  loadData();
+}
 
 /* ================= DATA ================= */
 function loadData(){
-Promise.all([fetch(YEARLY_CSV).then(r=>r.text()),fetch(WEEKLY_CSV).then(r=>r.text())])
-.then(([y,w])=>{
+Promise.all([
+  fetch(YEARLY_CSV).then(r=>r.text()),
+  fetch(WEEKLY_CSV).then(r=>r.text())
+]).then(([y,w])=>{
 weeklyData=w.trim().split("\n").slice(1).map(r=>{
-const c=r.split(",");
-return{date:new Date(c[0]),name:c[1],value:+c[2]||0};
+  const c=r.split(",");
+  return{date:new Date(c[0]),name:c[1],value:+c[2]||0};
 });
 const people=y.trim().split("\n").slice(1).map(r=>{
-const c=r.split(",");
-return{name:c[0],goal:+c[1],ytd:+c[2],total:0};
+  const c=r.split(",");
+  return{name:c[0],goal:+c[1],ytd:+c[2],total:0};
 });
+
 const now=new Date();
+const startOfWeek=new Date(now);
+startOfWeek.setDate(now.getDate()-now.getDay());
+
 people.forEach(p=>{
-if(view==="ytd"){p.total=p.ytd;return;}
-weeklyData.forEach(r=>{
-if(r.name!==p.name)return;
-const d=(now-r.date)/86400000;
-if(view==="week"&&d>=0&&d<=7)p.total+=r.value;
-if(view==="month"&&r.date.getMonth()===now.getMonth())p.total+=r.value;
+  if(view==="ytd"){p.total=p.ytd;return;}
+  weeklyData.forEach(r=>{
+    if(r.name!==p.name)return;
+    if(view==="week" && r.date>=startOfWeek) p.total+=r.value;
+    if(view==="month" &&
+       r.date.getMonth()===now.getMonth() &&
+       r.date.getFullYear()===now.getFullYear()
+    ) p.total+=r.value;
+  });
 });
-});
+
 render(people);
 });
 }
 
 /* ================= RENDER ================= */
+function createCard(p,highlight=false){
+  const pc=pct(p.total,p.goal);
+  return `
+  <div class="card" ${highlight?'style="border:3px solid #2563eb"':''}>
+    <h2>${p.name}</h2>
+    <div class="progress">
+      <div class="bar" style="width:${pc}%;background:${NAME_COLORS[p.name]||''}"></div>
+    </div>
+    <p>${p.total} / ${p.goal} (${pc}%)</p>
+  </div>`;
+}
+
 function render(people){
 const dash=document.getElementById("dashboard");
 const managers=document.getElementById("managers");
-dash.innerHTML="";managers.innerHTML="";
+dash.innerHTML=""; managers.innerHTML="";
 
 const teamTotal=people.reduce((a,b)=>a+b.total,0);
 const teamPct=pct(teamTotal,TEAM_GOAL);
-if(teamPct>=50)celebrate("halfway");
+
+if(teamPct>=25)celebrate("lap1");
+if(teamPct>=50)celebrate("lap2");
+if(teamPct>=75)celebrate("lap3");
+if(teamPct>=100)celebrate("finish");
 
 document.getElementById("team").innerHTML=`
 <div class="card team">
 <h2>🏁 Team Goal</h2>
 <div class="progress"><div class="bar" style="width:${teamPct}%"></div></div>
-<p>${teamTotal} / ${TEAM_GOAL} (${teamPct}%)</p></div>`;
+<p>${teamTotal} / ${TEAM_GOAL} (${teamPct}%)</p>
+</div>`;
 
 document.getElementById("lapCounter").innerText=
-teamPct>=100?"🏁 Finished!":teamPct>=75?"Final Lap":teamPct>=50?"Lap 3":teamPct>=25?"Lap 2":"Lap 1";
+teamPct>=100?"🏁 Finished!":
+teamPct>=75?"Final Lap":
+teamPct>=50?"Lap 3":
+teamPct>=25?"Lap 2":"Lap 1";
 
 people.sort((a,b)=>b.total-a.total);
 
 /* MVP */
 const mvp=people.find(p=>p.total>0);
 document.getElementById("mvp").innerHTML=mvp?
-`🏆 MVP<br><strong>${mvp.name}</strong><br>${mvp.total} enrollments`
-:`🏆 MVP<br><strong>Waiting…</strong>`;
+`🏆 MVP<br><strong>${mvp.name}</strong><br>${mvp.total} enrollments`:
+`🏆 MVP<br><strong>Waiting…</strong>`;
 
 /* Podium */
 const ranked=people.filter(p=>p.total>0);
 document.getElementById("podium").innerHTML=
-`<h3>🏁 Podium</h3>`+(ranked.length?ranked.slice(0,3).map((p,i)=>
-`<div class="podium-row">${["🥇","🥈","🥉"][i]} ${p.name}<span>${p.total}</span></div>`).join(""):`Waiting…`);
+`<h3>🏁 Podium</h3>`+
+(ranked.length?ranked.slice(0,3).map((p,i)=>
+`<div class="podium-row">${["🥇","🥈","🥉"][i]} ${p.name}<span>${p.total}</span></div>`
+).join(""):"Waiting…");
 
 const idx=people.findIndex(p=>p.name===MANAGER_START_NAME);
 const regulars=idx<0?people:people.slice(0,idx);
 const mgrs=idx<0?[]:people.slice(idx);
 
 regulars.forEach((p,i)=>{
-const pc=pct(p.total,p.goal);
-dash.innerHTML+=`
-<div class="card">
-${teamTotal>0&&i<3?`<div class="medal">${["🥇","🥈","🥉"][i]}</div>`:""}
-<h2>${p.name}</h2>
-<div class="progress"><div class="bar" style="width:${pc}%;background:${NAME_COLORS[p.name]||''}"></div></div>
-<p>${p.total} / ${p.goal} (${pc}%)</p></div>`;
+  dash.innerHTML+=`
+  <div class="card">
+    ${teamTotal>0&&i<3?`<div class="medal">${["🥇","🥈","🥉"][i]}</div>`:""}
+    ${createCard(p).slice(21)}
+  </div>`;
 });
 
 if(mgrs.length) managers.innerHTML+=`<h2>⭐ Managers</h2>`;
-mgrs.forEach(p=>{
-const pc=pct(p.total,p.goal);
-managers.innerHTML+=`
-<div class="card" style="border:3px solid #2563eb">
-<h2>${p.name}</h2>
-<div class="progress"><div class="bar" style="width:${pc}%;background:${NAME_COLORS[p.name]||''}"></div></div>
-<p>${p.total} / ${p.goal} (${pc}%)</p></div>`;
-});
+mgrs.forEach(p=>managers.innerHTML+=createCard(p,true));
 }
 
 loadData();
