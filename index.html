@@ -8,38 +8,35 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <style>
-/* ================= CHECKERED TOP STRIP ================= */
+/* ================= CHECKERED TOP ================= */
 body::before{
   content:"";
   position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:28px;
+  top:0;left:0;
+  width:100%;height:28px;
   z-index:999;
-  background:repeating-linear-gradient(
-    90deg,#000 0 20px,#fff 20px 40px
-  );
+  background:repeating-linear-gradient(90deg,#000 0 20px,#fff 20px 40px);
 }
 
-/* ================= CARTOON RACETRACK ================= */
+/* ================= BACKGROUND ================= */
 body{
   margin:0;
   padding:60px 12px 40px;
   font-family:Arial,sans-serif;
   text-align:center;
-  background:
-    repeating-linear-gradient(
-      90deg,#86efac 0 60px,#a7f3d0 60px 120px
-    );
+  background:repeating-linear-gradient(
+    90deg,#86efac 0 60px,#a7f3d0 60px 120px
+  );
 }
 
+/* ================= HOLIDAY AUTO THEMES ================= */
+body.holiday-halloween{background:repeating-linear-gradient(90deg,#ff9800 0 60px,#000 60px 120px);}
+body.holiday-christmas{background:repeating-linear-gradient(90deg,#d32f2f 0 60px,#2e7d32 60px 120px);}
+body.holiday-newyear{background:repeating-linear-gradient(90deg,#1a237e 0 60px,#000 60px 120px);}
+body.holiday-valentine{background:repeating-linear-gradient(90deg,#e91e63 0 60px,#f8bbd0 60px 120px);}
+
 /* ================= TITLE ================= */
-h1{
-  color:#ef4444;
-  font-size:30px;
-  margin-bottom:18px;
-}
+h1{color:#ef4444;font-size:30px;margin-bottom:18px;}
 
 /* ================= BUTTONS ================= */
 .buttons button{
@@ -52,7 +49,7 @@ h1{
   cursor:pointer;
 }
 
-/* ================= CARDS ================= */
+/* ================= SCORECARDS ================= */
 .card{
   background:#fff;
   max-width:380px;
@@ -77,7 +74,6 @@ h1{
 .bar{
   height:100%;
   transition:width .6s ease;
-  background:linear-gradient(90deg,#facc15,#22c55e);
   position:relative;
 }
 
@@ -103,15 +99,16 @@ h1{
   to{transform:scale(1);opacity:1}
 }
 
-/* ================= PODIUM ================= */
+/* ================= PODIUM (MATCH CARD SIZE) ================= */
 #podium{
   position:fixed;
   right:16px;
   top:120px;
-  width:220px;
+  max-width:380px;
+  width:100%;
   background:#fff;
-  border-radius:24px;
-  padding:16px;
+  border-radius:26px;
+  padding:20px;
   box-shadow:0 12px 30px rgba(0,0,0,.2);
 }
 
@@ -122,27 +119,23 @@ h1{
   justify-content:space-between;
   padding:6px 0;
   font-weight:bold;
-  animation:slide .4s ease;
 }
 
-@keyframes slide{
-  from{transform:translateX(20px);opacity:0}
-  to{transform:translateX(0);opacity:1}
-}
-
-/* ================= MVP ================= */
+/* ================= MVP (MATCH CARD SIZE) ================= */
 #mvp{
   position:fixed;
   left:16px;
   top:120px;
-  width:220px;
+  max-width:380px;
+  width:100%;
   background:#fff7ed;
   border:4px solid #f59e0b;
-  border-radius:24px;
-  padding:16px;
+  border-radius:26px;
+  padding:20px;
   box-shadow:0 0 18px rgba(245,158,11,.8);
   animation:pulse 2s infinite;
   text-align:left;
+  font-size:18px;
 }
 
 @keyframes pulse{
@@ -164,17 +157,13 @@ h1{
   box-shadow:0 8px 20px rgba(0,0,0,.2);
 }
 
-/* ================= SPONSOR LOGO ================= */
+/* ================= SPONSOR ================= */
 #sponsor{
   position:fixed;
   bottom:16px;
   left:16px;
 }
-
-#sponsor img{
-  width:120px;
-  opacity:.9;
-}
+#sponsor img{width:130px;}
 </style>
 </head>
 
@@ -195,7 +184,7 @@ h1{
 <div id="lapCounter"></div>
 
 <div id="sponsor">
-  <img src="<img src="WEB-HAMPTON-INN-AND-SUITES.jpg" alt="Hampton Inn & Suites by Hilton">
+  <img src="WEB-HAMPTON-INN-AND-SUITES.jpg" alt="Hampton by Hilton">
 </div>
 
 <script>
@@ -204,9 +193,23 @@ const TEAM_GOAL=550;
 const YEARLY_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=1984389436&single=true&output=csv";
 const WEEKLY_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=0&single=true&output=csv";
 
-let view="month",weeklyData=[];
+const NAME_COLORS={
+  "Sabrina":"#22c55e",
+  "Teresita":"#7dd3fc",
+  "Edward":"#ffffff"
+};
 
+let view="month",weeklyData=[];
 const pct=(a,b)=>b?Math.round(a/b*100):0;
+
+/* ================= HOLIDAY AUTO ================= */
+(function(){
+  const t=new Date(),m=t.getMonth()+1,d=t.getDate();
+  if(m===10&&d>=20)document.body.classList.add("holiday-halloween");
+  if(m===12&&d>=15)document.body.classList.add("holiday-christmas");
+  if(m===1&&d<=7)document.body.classList.add("holiday-newyear");
+  if(m===2&&d>=10&&d<=14)document.body.classList.add("holiday-valentine");
+})();
 
 function celebrate(key){
   if(localStorage.getItem(key))return;
@@ -254,42 +257,42 @@ function render(people){
   document.getElementById("team").innerHTML=`
     <div class="card team">
       <h2>🏁 Team Goal</h2>
-      <div class="progress"><div class="bar" style="width:${teamPct}%"></div></div>
+      <div class="progress">
+        <div class="bar" style="width:${teamPct}%;background:linear-gradient(90deg,#facc15,#22c55e)"></div>
+      </div>
       <p>${teamTotal} / ${TEAM_GOAL} (${teamPct}%)</p>
     </div>`;
 
-  /* Lap Counter */
-  let lap="Lap 1";
-  if(teamPct>=25)lap="Lap 2";
-  if(teamPct>=50)lap="Lap 3";
-  if(teamPct>=75)lap="Final Lap";
-  if(teamPct>=100)lap="🏁 Finished!";
-  document.getElementById("lapCounter").innerText=`${lap}`;
+  document.getElementById("lapCounter").innerText=
+    teamPct>=100?"🏁 Finished!":
+    teamPct>=75?"Final Lap":
+    teamPct>=50?"Lap 3":
+    teamPct>=25?"Lap 2":"Lap 1";
 
   people.sort((a,b)=>b.total-a.total);
 
   const mvp=people.find(p=>p.total>0);
-  document.getElementById("mvp").innerHTML=mvp?`
-    🏆 MVP
-    <strong>${mvp.name}</strong>
-    ${mvp.total} enrollments
-  `:`🏆 MVP<br><strong>Waiting for first enrollment…</strong>`;
+  document.getElementById("mvp").innerHTML=mvp?
+    `🏆 MVP<br><strong>${mvp.name}</strong><br>${mvp.total} enrollments`:
+    `🏆 MVP<br><strong>Waiting for first enrollment…</strong>`;
 
   const ranked=people.filter(p=>p.total>0);
   document.getElementById("podium").innerHTML=`
     <h3>🏁 Podium</h3>
     ${ranked.length?ranked.slice(0,3).map((p,i)=>`
       <div class="podium-row">${["🥇","🥈","🥉"][i]} ${p.name}<span>${p.total}</span></div>
-    `).join(""):`<div class="podium-row">Waiting…</div>`}
-  `;
+    `).join(""):`<div class="podium-row">Waiting…</div>`}`;
 
   people.forEach((p,i)=>{
     const pPct=pct(p.total,p.goal);
+    const color=NAME_COLORS[p.name]||"linear-gradient(90deg,#facc15,#22c55e)";
     dash.innerHTML+=`
       <div class="card">
         ${teamTotal>0&&i<3?`<div class="medal">${["🥇","🥈","🥉"][i]}</div>`:""}
         <h2>${p.name}</h2>
-        <div class="progress"><div class="bar" style="width:${pPct}%"></div></div>
+        <div class="progress">
+          <div class="bar" style="width:${pPct}%;background:${color}"></div>
+        </div>
         <p>${p.total} / ${p.goal} (${pPct}%)</p>
       </div>`;
   });
@@ -300,4 +303,5 @@ loadData();
 
 </body>
 </html>
+
 
