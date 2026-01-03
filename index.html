@@ -8,56 +8,36 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <style>
-/* ================= CHECKERED FINISH LINE ================= */
+/* ================= FINISH LINE ================= */
 body::before{
   content:"";
   position:fixed;
-  top:0;left:0;width:100%;height:28px;
+  top:0;left:0;width:100%;height:26px;
   background:repeating-linear-gradient(90deg,#000 0 20px,#fff 20px 40px);
   z-index:999;
 }
 
-/* ================= BASE RACETRACK ================= */
+/* ================= BASE BACKGROUND ================= */
 body{
   margin:0;
-  padding:60px 14px 60px;
+  padding:60px 16px 60px;
   font-family:Arial,sans-serif;
-  background:repeating-linear-gradient(
-    90deg,#86efac 0 60px,#a7f3d0 60px 120px
-  );
+  background:repeating-linear-gradient(90deg,#86efac 0 60px,#a7f3d0 60px 120px);
   text-align:center;
 }
 
 /* ================= HOLIDAY THEMES ================= */
-body.us-holiday{
-  background:repeating-linear-gradient(
-    90deg,#ef4444 0 40px,#fff 40px 80px,#2563eb 80px 120px
-  );
-}
-body.mx-holiday{
-  background:repeating-linear-gradient(
-    90deg,#16a34a 0 40px,#fff 40px 80px,#dc2626 80px 120px
-  );
-}
-body.in-holiday{
-  background:repeating-linear-gradient(
-    90deg,#f59e0b 0 40px,#fff 40px 80px,#16a34a 80px 120px
-  );
-}
-body.ph-holiday{
-  background:repeating-linear-gradient(
-    90deg,#1d4ed8 0 40px,#fff 40px 80px,#dc2626 80px 120px
-  );
-}
+.us-holiday{background:repeating-linear-gradient(90deg,#ef4444,#fff,#2563eb)}
+.mx-holiday{background:repeating-linear-gradient(90deg,#16a34a,#fff,#dc2626)}
+.in-holiday{background:repeating-linear-gradient(90deg,#f59e0b,#fff,#16a34a)}
+.ph-holiday{background:repeating-linear-gradient(90deg,#1d4ed8,#fff,#dc2626)}
 
-/* ================= TITLES ================= */
-h1{color:#ef4444;font-size:30px;margin-bottom:16px}
+h1{color:#ef4444;margin-bottom:16px}
 
-/* ================= BUTTONS ================= */
 .buttons button{
+  padding:10px 16px;
   margin:6px;
-  padding:10px 18px;
-  border-radius:16px;
+  border-radius:14px;
   border:none;
   font-weight:bold;
   cursor:pointer;
@@ -73,7 +53,6 @@ h1{color:#ef4444;font-size:30px;margin-bottom:16px}
   box-shadow:0 10px 30px rgba(0,0,0,.15);
   position:relative;
 }
-.team{border:4px solid #ef4444}
 
 /* ================= PROGRESS ================= */
 .progress{
@@ -81,41 +60,29 @@ h1{color:#ef4444;font-size:30px;margin-bottom:16px}
   height:20px;
   border-radius:14px;
   overflow:hidden;
-  margin:14px 0;
+  margin:12px 0;
 }
 .bar{
   height:100%;
-  background:linear-gradient(90deg,#facc15,#22c55e);
-  transition:width .6s ease;
+  transition:.6s;
   position:relative;
 }
 .bar::after{
   content:"🏎️💨";
   position:absolute;
-  right:-6px;
-  top:-16px;
-  font-size:20px;
+  right:-8px;
+  top:-18px;
 }
-
-/* ================= MEDALS ================= */
-.medal{
-  position:absolute;
-  top:-14px;
-  right:-14px;
-  font-size:34px;
-  animation:pop .4s ease;
-}
-@keyframes pop{from{scale:.3;opacity:0}to{scale:1;opacity:1}}
 
 /* ================= MVP & PODIUM ================= */
 #mvp,#podium{
   position:fixed;
   top:120px;
-  width:260px;
-  padding:18px;
+  width:380px;
+  padding:20px;
   border-radius:26px;
   background:#fff;
-  box-shadow:0 14px 32px rgba(0,0,0,.2);
+  box-shadow:0 14px 30px rgba(0,0,0,.2);
 }
 #mvp{
   left:16px;
@@ -128,20 +95,19 @@ h1{color:#ef4444;font-size:30px;margin-bottom:16px}
   border:4px solid #2563eb;
   animation:bounce 2s infinite;
 }
-@keyframes pulse{0%,100%{scale:1}50%{scale:1.05}}
-@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes pulse{50%{transform:scale(1.05)}}
+@keyframes bounce{50%{transform:translateY(-6px)}}
 
 .podium-row{
   display:flex;
   justify-content:space-between;
-  padding:6px 0;
   font-weight:bold;
 }
 
 /* ================= MANAGERS ================= */
-#managers h2{color:#1d4ed8;margin-top:30px}
+#managers h2{color:#1d4ed8;margin-top:28px}
 
-/* ================= LAP COUNTER ================= */
+/* ================= LAP ================= */
 #lapCounter{
   position:fixed;
   bottom:20px;
@@ -159,7 +125,7 @@ h1{color:#ef4444;font-size:30px;margin-bottom:16px}
   bottom:16px;
   left:16px;
 }
-#sponsor img{width:120px;opacity:.9}
+#sponsor img{width:120px}
 </style>
 </head>
 
@@ -168,9 +134,9 @@ h1{color:#ef4444;font-size:30px;margin-bottom:16px}
 <h1>🏁 Enrollment Race to 550</h1>
 
 <div class="buttons">
-  <button onclick="setView('ytd')">Year to Date</button>
-  <button onclick="setView('month')">This Month</button>
-  <button onclick="setView('week')">This Week</button>
+  <button onclick="setView('ytd')">YTD</button>
+  <button onclick="setView('month')">Month</button>
+  <button onclick="setView('week')">Week</button>
 </div>
 
 <div id="mvp"></div>
@@ -185,127 +151,99 @@ h1{color:#ef4444;font-size:30px;margin-bottom:16px}
 </div>
 
 <script>
-/* ================= CONFIG ================= */
 const TEAM_GOAL=550;
-const MANAGER_START_NAME="Sabrina";
+const MANAGER_START="Sabrina";
 
-const YEARLY_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=1984389436&single=true&output=csv";
-const WEEKLY_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=0&single=true&output=csv";
+const YEARLY="https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=1984389436&single=true&output=csv";
+const WEEKLY="https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=0&single=true&output=csv";
 
-const NAME_COLORS={
-  Leeah:"#facc15", Marissa:"#f9a8d4", Chakri:"#fb923c", Nitya:"#2563eb",
-  Sabrina:"#22c55e", Teresita:"#93c5fd", Edward:"#e5e7eb"
+const COLORS={
+  Sabrina:"#22c55e",
+  Teresita:"#93c5fd",
+  Edward:"#ffffff"
 };
 
-let view="month",weeklyData=[];
-const pct=(a,b)=>b?Math.round(a/b*100):0;
+let view="month";
 
-/* ================= CONFETTI ================= */
-function celebrate(key){
-  if(localStorage.getItem(key))return;
-  confetti({particleCount:160,spread:90,origin:{y:.6}});
-  localStorage.setItem(key,"done");
-}
-
-/* ================= HOLIDAY AUTO DETECT ================= */
 (function(){
   const d=new Date(),m=d.getMonth()+1,day=d.getDate();
-  if(m===7&&day===4)document.body.classList.add("us-holiday");         // USA
-  if(m===5&&day===5||m===9&&day===16)document.body.classList.add("mx-holiday"); // Mexico
-  if(m===8&&day===15)document.body.classList.add("in-holiday");        // India
-  if(m===6&&day===12||m===8&&day===21)document.body.classList.add("ph-holiday"); // Philippines
+  if(m===7&&day===4)document.body.classList.add("us-holiday");
+  if(m===5&&day===5||m===9&&day===16)document.body.classList.add("mx-holiday");
+  if(m===8&&day===15)document.body.classList.add("in-holiday");
+  if(m===6&&day===12||m===8&&day===21)document.body.classList.add("ph-holiday");
 })();
 
-/* ================= VIEW ================= */
-function setView(v){view=v;loadData();}
+function setView(v){view=v;load();}
 
-/* ================= DATA LOAD ================= */
-function loadData(){
-Promise.all([fetch(YEARLY_CSV).then(r=>r.text()),fetch(WEEKLY_CSV).then(r=>r.text())])
+function load(){
+Promise.all([fetch(YEARLY).then(r=>r.text()),fetch(WEEKLY).then(r=>r.text())])
 .then(([y,w])=>{
-weeklyData=w.trim().split("\n").slice(1).map(r=>{
-const c=r.split(",");return{date:new Date(c[0]),name:c[1],value:+c[2]||0};
+const weekly=w.split("\n").slice(1).map(r=>{
+const c=r.split(",");return{d:new Date(c[0]),n:c[1],v:+c[2]||0};
 });
-const people=y.trim().split("\n").slice(1).map(r=>{
+const people=y.split("\n").slice(1).map(r=>{
 const c=r.split(",");return{name:c[0],goal:+c[1],ytd:+c[2],total:0};
 });
 const now=new Date();
 people.forEach(p=>{
 if(view==="ytd"){p.total=p.ytd;return;}
-weeklyData.forEach(r=>{
-if(r.name!==p.name)return;
-const d=(now-r.date)/86400000;
-if(view==="week"&&d>=0&&d<=7)p.total+=r.value;
-if(view==="month"&&r.date.getMonth()===now.getMonth())p.total+=r.value;
+weekly.forEach(r=>{
+if(r.n!==p.name)return;
+const diff=(now-r.d)/86400000;
+if(view==="week"&&diff<=7)p.total+=r.v;
+if(view==="month"&&r.d.getMonth()===now.getMonth())p.total+=r.v;
 });
 });
 render(people);
 });
 }
 
-/* ================= RENDER ================= */
-function render(people){
+function render(p){
 const dash=document.getElementById("dashboard");
-const managers=document.getElementById("managers");
-dash.innerHTML="";managers.innerHTML="";
+const mgr=document.getElementById("managers");
+dash.innerHTML="";mgr.innerHTML="";
 
-const teamTotal=people.reduce((a,b)=>a+b.total,0);
-const teamPct=pct(teamTotal,TEAM_GOAL);
-if(teamPct>=50)celebrate("halfway");
-
+const teamTotal=p.reduce((a,b)=>a+b.total,0);
 document.getElementById("team").innerHTML=`
-<div class="card team">
-<h2>🏁 Team Goal</h2>
-<div class="progress"><div class="bar" style="width:${teamPct}%"></div></div>
-<p>${teamTotal} / ${TEAM_GOAL} (${teamPct}%)</p></div>`;
+<div class="card"><h2>🏁 Team Goal</h2>
+<div class="progress"><div class="bar" style="width:${teamTotal/TEAM_GOAL*100}%"></div></div>
+${teamTotal} / ${TEAM_GOAL}</div>`;
+
+p.sort((a,b)=>b.total-a.total);
+
+document.getElementById("mvp").innerHTML=p[0]?.total?
+`🏆 MVP<br><strong>${p[0].name}</strong><br>${p[0].total}`:"🏆 MVP<br>Waiting…";
+
+document.getElementById("podium").innerHTML=
+`<h3>🏁 Podium</h3>`+p.slice(0,3).map((x,i)=>
+`<div class="podium-row">${["🥇","🥈","🥉"][i]} ${x.name}<span>${x.total}</span></div>`).join("");
+
+const idx=p.findIndex(x=>x.name===MANAGER_START);
+const staff=idx<0?p:p.slice(0,idx);
+const managers=idx<0?[]:p.slice(idx);
+
+staff.forEach(x=>{
+const pc=x.total/x.goal*100;
+dash.innerHTML+=`
+<div class="card"><h2>${x.name}</h2>
+<div class="progress"><div class="bar" style="width:${pc}%;background:${COLORS[x.name]||'#22c55e'}"></div></div>
+${x.total}/${x.goal}</div>`;
+});
+
+if(managers.length)mgr.innerHTML="<h2>⭐ Managers</h2>";
+managers.forEach(x=>{
+const pc=x.total/x.goal*100;
+mgr.innerHTML+=`
+<div class="card"><h2>${x.name}</h2>
+<div class="progress"><div class="bar" style="width:${pc}%;background:${COLORS[x.name]||'#2563eb'}"></div></div>
+${x.total}/${x.goal}</div>`;
+});
 
 document.getElementById("lapCounter").innerText=
-teamPct>=100?"🏁 Finished!":teamPct>=75?"Final Lap":teamPct>=50?"Lap 3":teamPct>=25?"Lap 2":"Lap 1";
-
-people.sort((a,b)=>b.total-a.total);
-
-/* MVP */
-const mvp=people.find(p=>p.total>0);
-document.getElementById("mvp").innerHTML=mvp?
-`🏆 MVP<br><strong>${mvp.name}</strong><br>${mvp.total} enrollments`
-:`🏆 MVP<br><strong>Waiting…</strong>`;
-
-/* Podium */
-const ranked=people.filter(p=>p.total>0);
-document.getElementById("podium").innerHTML=
-`<h3>🏁 Podium</h3>`+(ranked.length?ranked.slice(0,3).map((p,i)=>
-`<div class="podium-row">${["🥇","🥈","🥉"][i]} ${p.name}<span>${p.total}</span></div>`).join(""):`Waiting…`);
-
-const idx=people.findIndex(p=>p.name===MANAGER_START_NAME);
-const regulars=idx<0?people:people.slice(0,idx);
-const mgrs=idx<0?[]:people.slice(idx);
-
-regulars.forEach((p,i)=>{
-const pc=pct(p.total,p.goal);
-dash.innerHTML+=`
-<div class="card">
-${teamTotal>0&&i<3?`<div class="medal">${["🥇","🥈","🥉"][i]}</div>`:""}
-<h2>${p.name}</h2>
-<div class="progress"><div class="bar" style="width:${pc}%;background:${NAME_COLORS[p.name]||''}"></div></div>
-<p>${p.total} / ${p.goal} (${pc}%)</p></div>`;
-});
-
-if(mgrs.length) managers.innerHTML+=`<h2>⭐ Managers</h2>`;
-mgrs.forEach(p=>{
-const pc=pct(p.total,p.goal);
-managers.innerHTML+=`
-<div class="card" style="border:3px solid #2563eb">
-<h2>${p.name}</h2>
-<div class="progress"><div class="bar" style="width:${pc}%;background:${NAME_COLORS[p.name]||''}"></div></div>
-<p>${p.total} / ${p.goal} (${pc}%)</p></div>`;
-});
+teamTotal>=TEAM_GOAL?"🏁 Finished":"Lap "+Math.ceil(teamTotal/TEAM_GOAL*4);
 }
 
-loadData();
+load();
 </script>
 </body>
 </html>
-
-
-
-
