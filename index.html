@@ -79,7 +79,22 @@ body.lunar{
 }
 
 /* ================= TITLE ================= */
-h1{color:#ef4444;font-size:30px;margin-bottom:16px}
+h1{
+  color:#ef4444;
+  font-size:42px;                 /* Bigger title */
+  margin-bottom:18px;
+  letter-spacing:1px;
+  animation:titlePulse 2.5s infinite;
+}
+@keyframes titlePulse{
+  0%,100%{
+    transform:scale(1);
+  }
+  50%{
+    transform:scale(1.03);
+  }
+}
+
 
 /* ================= BUTTONS ================= */
 .buttons button{
