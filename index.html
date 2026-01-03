@@ -12,10 +12,14 @@
 body::before{
   content:"";
   position:fixed;
-  top:0;left:0;
-  width:100%;height:28px;
+  top:0;
+  left:0;
+  width:100%;
+  height:28px;
   z-index:999;
-  background:repeating-linear-gradient(90deg,#000 0 20px,#fff 20px 40px);
+  background:repeating-linear-gradient(
+    90deg,#000 0 20px,#fff 20px 40px
+  );
 }
 
 /* ================= CARTOON RACETRACK ================= */
@@ -24,15 +28,17 @@ body{
   padding:60px 12px 40px;
   font-family:Arial,sans-serif;
   text-align:center;
-  background:repeating-linear-gradient(90deg,#86efac 0 60px,#a7f3d0 60px 120px);
+  background:
+    repeating-linear-gradient(
+      90deg,#86efac 0 60px,#a7f3d0 60px 120px
+    );
 }
 
-/* ================= HEADERS ================= */
-h1{color:#ef4444;font-size:30px;margin-bottom:18px;}
-.section-title{
-  font-size:22px;
-  color:#111827;
-  margin:30px 0 10px;
+/* ================= TITLE ================= */
+h1{
+  color:#ef4444;
+  font-size:30px;
+  margin-bottom:18px;
 }
 
 /* ================= BUTTONS ================= */
@@ -50,14 +56,14 @@ h1{color:#ef4444;font-size:30px;margin-bottom:18px;}
 .card{
   background:#fff;
   max-width:380px;
-  margin:16px auto;
+  margin:18px auto;
   padding:20px;
   border-radius:26px;
   box-shadow:0 10px 30px rgba(0,0,0,.15);
   position:relative;
 }
+
 .team{border:4px solid #ef4444;}
-.manager{border:4px solid #2563eb;}
 
 /* ================= PROGRESS ================= */
 .progress{
@@ -67,11 +73,14 @@ h1{color:#ef4444;font-size:30px;margin-bottom:18px;}
   overflow:hidden;
   margin:14px 0;
 }
+
 .bar{
   height:100%;
   transition:width .6s ease;
   background:linear-gradient(90deg,#facc15,#22c55e);
+  position:relative;
 }
+
 .bar::after{
   content:"🏎️💨";
   position:absolute;
@@ -88,32 +97,54 @@ h1{color:#ef4444;font-size:30px;margin-bottom:18px;}
   font-size:34px;
   animation:pop .4s ease;
 }
+
 @keyframes pop{
   from{transform:scale(.3);opacity:0}
   to{transform:scale(1);opacity:1}
 }
 
-/* ================= MVP & PODIUM ================= */
-#mvp,#podium{
-  width:240px;
-  background:#fff;
-  border-radius:24px;
-  padding:16px;
-  box-shadow:0 12px 30px rgba(0,0,0,.2);
-  animation:pulse 2s infinite;
-}
-#mvp{
-  position:fixed;
-  left:16px;
-  top:120px;
-  border:4px solid #f59e0b;
-}
+/* ================= PODIUM ================= */
 #podium{
   position:fixed;
   right:16px;
   top:120px;
-  border:4px solid #ef4444;
+  width:220px;
+  background:#fff;
+  border-radius:24px;
+  padding:16px;
+  box-shadow:0 12px 30px rgba(0,0,0,.2);
 }
+
+#podium h3{margin:0 0 10px;color:#ef4444;}
+
+.podium-row{
+  display:flex;
+  justify-content:space-between;
+  padding:6px 0;
+  font-weight:bold;
+  animation:slide .4s ease;
+}
+
+@keyframes slide{
+  from{transform:translateX(20px);opacity:0}
+  to{transform:translateX(0);opacity:1}
+}
+
+/* ================= MVP ================= */
+#mvp{
+  position:fixed;
+  left:16px;
+  top:120px;
+  width:220px;
+  background:#fff7ed;
+  border:4px solid #f59e0b;
+  border-radius:24px;
+  padding:16px;
+  box-shadow:0 0 18px rgba(245,158,11,.8);
+  animation:pulse 2s infinite;
+  text-align:left;
+}
+
 @keyframes pulse{
   0%{transform:scale(1)}
   50%{transform:scale(1.05)}
@@ -133,13 +164,17 @@ h1{color:#ef4444;font-size:30px;margin-bottom:18px;}
   box-shadow:0 8px 20px rgba(0,0,0,.2);
 }
 
-/* ================= SPONSOR ================= */
+/* ================= SPONSOR LOGO ================= */
 #sponsor{
   position:fixed;
   bottom:16px;
   left:16px;
 }
-#sponsor img{width:120px}
+
+#sponsor img{
+  width:120px;
+  opacity:.9;
+}
 </style>
 </head>
 
@@ -156,25 +191,19 @@ h1{color:#ef4444;font-size:30px;margin-bottom:18px;}
 <div id="mvp"></div>
 <div id="podium"></div>
 <div id="team"></div>
-
-<h2 class="section-title">👩‍💼 Managers</h2>
-<div id="managers"></div>
-
-<h2 class="section-title">🏎️ Team Members</h2>
 <div id="dashboard"></div>
-
 <div id="lapCounter"></div>
 
 <div id="sponsor">
-  <img src="WEB-HAMPTON-INN-AND-SUITES.jpg" alt="Hampton Inn & Suites">
+  <img src="WEB-HAMPTON-INN-AND-SUITES.jpg" alt="Hampton Inn & Suites by Hilton">
 </div>
 
 <script>
+/* ================= CONFIG ================= */
 const TEAM_GOAL=550;
 const YEARLY_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=1984389436&single=true&output=csv";
 const WEEKLY_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=0&single=true&output=csv";
 
-const MANAGERS=["Sabrina","Teresita","Edward"];
 let view="month",weeklyData=[];
 
 const pct=(a,b)=>b?Math.round(a/b*100):0;
@@ -188,10 +217,8 @@ function celebrate(key){
 function setView(v){view=v;loadData();}
 
 function loadData(){
-  Promise.all([
-    fetch(YEARLY_CSV).then(r=>r.text()),
-    fetch(WEEKLY_CSV).then(r=>r.text())
-  ]).then(([y,w])=>{
+  Promise.all([fetch(YEARLY_CSV).then(r=>r.text()),fetch(WEEKLY_CSV).then(r=>r.text())])
+  .then(([y,w])=>{
     weeklyData=w.trim().split("\n").slice(1).map(r=>{
       const c=r.split(",");
       return{date:new Date(c[0]),name:c[1],value:+c[2]||0};
@@ -212,22 +239,19 @@ function loadData(){
         if(view==="month"&&r.date.getMonth()===now.getMonth())p.total+=r.value;
       });
     });
-
     render(people);
   });
 }
 
 function render(people){
-  const team=document.getElementById("team");
   const dash=document.getElementById("dashboard");
-  const mgr=document.getElementById("managers");
-  team.innerHTML=dash.innerHTML=mgr.innerHTML="";
+  dash.innerHTML="";
 
   const teamTotal=people.reduce((a,b)=>a+b.total,0);
   const teamPct=pct(teamTotal,TEAM_GOAL);
   if(teamPct>=50)celebrate("team-half");
 
-  team.innerHTML=`
+  document.getElementById("team").innerHTML=`
     <div class="card team">
       <h2>🏁 Team Goal</h2>
       <div class="progress"><div class="bar" style="width:${teamPct}%"></div></div>
@@ -241,29 +265,31 @@ function render(people){
   if(teamPct>=100)lap="🏁 Finished!";
   lapCounter.innerText=lap;
 
-  const managers=people.filter(p=>MANAGERS.includes(p.name));
-  const members=people.filter(p=>!MANAGERS.includes(p.name));
+  people.sort((a,b)=>b.total-a.total);
 
-  MANAGERS.forEach(name=>{
-    const p=managers.find(m=>m.name===name);
-    if(!p||p.total<=0)return;
-    mgr.innerHTML+=`
-      <div class="card manager">
-        <h2>${p.name}</h2>
-        <div class="progress"><div class="bar" style="width:${pct(p.total,p.goal)}%"></div></div>
-        <p>${p.total} / ${p.goal}</p>
-      </div>`;
-  });
+  const mvp=people.find(p=>p.total>0);
+  document.getElementById("mvp").innerHTML=mvp?`
+    🏆 MVP
+    <strong>${mvp.name}</strong>
+    ${mvp.total} enrollments
+  `:`🏆 MVP<br><strong>Waiting for first enrollment…</strong>`;
 
-  members.sort((a,b)=>b.total-a.total);
-  members.forEach((p,i)=>{
-    if(p.total<=0)return;
+  const ranked=people.filter(p=>p.total>0);
+  document.getElementById("podium").innerHTML=`
+    <h3>🏁 Podium</h3>
+    ${ranked.length?ranked.slice(0,3).map((p,i)=>`
+      <div class="podium-row">${["🥇","🥈","🥉"][i]} ${p.name}<span>${p.total}</span></div>
+    `).join(""):`<div class="podium-row">Waiting…</div>`}
+  `;
+
+  people.forEach((p,i)=>{
+    const pPct=pct(p.total,p.goal);
     dash.innerHTML+=`
       <div class="card">
-        ${i<3?`<div class="medal">${["🥇","🥈","🥉"][i]}</div>`:""}
+        ${teamTotal>0&&i<3?`<div class="medal">${["🥇","🥈","🥉"][i]}</div>`:""}
         <h2>${p.name}</h2>
-        <div class="progress"><div class="bar" style="width:${pct(p.total,p.goal)}%"></div></div>
-        <p>${p.total} / ${p.goal}</p>
+        <div class="progress"><div class="bar" style="width:${pPct}%"></div></div>
+        <p>${p.total} / ${p.goal} (${pPct}%)</p>
       </div>`;
   });
 }
@@ -273,3 +299,4 @@ loadData();
 
 </body>
 </html>
+
