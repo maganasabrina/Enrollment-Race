@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+PE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -177,46 +177,10 @@ h1{
 #sponsor{position:fixed;bottom:16px;left:16px}
 #sponsor img{max-width:120px;height:auto;opacity:.9}
 
-/* ================= FLAG OVERLAY (ISOLATED) ================= */
-#raceFlagPopup{
-  position:fixed;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  pointer-events:none;
-  opacity:0;
-  z-index:3000;
-}
-#raceFlagPopup.show{
-  opacity:1;
-  animation:flagFade 2.4s ease forwards;
-}
-#raceFlag{
-  animation:clothWave .6s infinite ease-in-out;
-  transform-origin:left center;
-}
-@keyframes clothWave{
-  0%{transform:skewY(-2deg)}
-  50%{transform:skewY(2deg)}
-  100%{transform:skewY(-2deg)}
-}
-@keyframes flagFade{
-  0%{opacity:0;transform:scale(.9)}
-  15%{opacity:1;transform:scale(1)}
-  85%{opacity:1}
-  100%{opacity:0;transform:scale(.95)}
-}
-
-@media(max-width:600px){
-  #raceFlagPopup svg{width:160px}
-}
-
 /* ================= REDUCED MOTION ================= */
 @media (prefers-reduced-motion:reduce){
   *{animation:none!important;transition:none!important}
 }
-
 </style>
 </head>
 
@@ -240,29 +204,6 @@ h1{
 <div id="sponsor">
   <img src="WEB-HAMPTON-INN-AND-SUITES.jpg" alt="Hampton Inn & Suites">
 </div>
-
-<!-- FLAG OVERLAY -->
-<div id="raceFlagPopup">
-  <svg viewBox="0 0 220 140">
-    <rect x="20" y="10" width="6" height="120" fill="#555"/>
-    <path id="raceFlag"
-      d="M26 18
-         C70 12,120 26,190 18
-         L190 78
-         C120 90,70 64,26 78 Z"
-      fill="url(#checker)"/>
-    <defs>
-      <pattern id="checker" width="20" height="20" patternUnits="userSpaceOnUse">
-        <rect width="10" height="10" fill="#000"/>
-        <rect x="10" y="10" width="10" height="10" fill="#000"/>
-      </pattern>
-    </defs>
-  </svg>
-</div>
-
-<audio id="crowdCheer" preload="auto">
-  <source src="https://cdn.pixabay.com/audio/2022/03/15/audio_115b9c76d3.mp3" type="audio/mpeg">
-</audio>
 
 <script>
 /* ================= CONFIG ================= */
@@ -288,19 +229,6 @@ function celebrate(key){
   localStorage.setItem(key,"done");
 }
 
-/* ================= FLAG TRIGGER ================= */
-const flagPopup=document.getElementById("raceFlagPopup");
-const cheer=document.getElementById("crowdCheer");
-
-function showRaceFlag(){
-  flagPopup.classList.remove("show");
-  void flagPopup.offsetWidth;
-  flagPopup.classList.add("show");
-  cheer.currentTime=0;
-  cheer.volume=0.4;
-  cheer.play().catch(()=>{});
-}
-
 /* ================= HOLIDAY AUTO ================= */
 (()=>{
   const d=new Date(),m=d.getMonth()+1,day=d.getDate();
@@ -315,7 +243,6 @@ function setView(v,btn){
   view=v;
   document.querySelectorAll(".buttons button").forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");
-  showRaceFlag();
   loadData();
 }
 
@@ -333,25 +260,52 @@ const people=y.trim().split("\n").slice(1).map(r=>{
   const c=r.split(",");
   return{name:c[0],goal:+c[1],ytd:+c[2],total:0};
 });
+
 const now=new Date();
+const startOfWeek=new Date(now);
+startOfWeek.setDate(now.getDate()-now.getDay());
+
 people.forEach(p=>{
   if(view==="ytd"){p.total=p.ytd;return;}
   weeklyData.forEach(r=>{
     if(r.name!==p.name)return;
-    if(view==="week" && (now-r.date)/86400000<=7) p.total+=r.value;
-    if(view==="month" && r.date.getMonth()===now.getMonth()) p.total+=r.value;
+    if(view==="week" && r.date>=startOfWeek) p.total+=r.value;
+    if(view==="month" &&
+       r.date.getMonth()===now.getMonth() &&
+       r.date.getFullYear()===now.getFullYear()
+    ) p.total+=r.value;
   });
 });
+
 render(people);
 });
 }
 
 /* ================= RENDER ================= */
+function createCard(p,highlight=false){
+  const pc=pct(p.total,p.goal);
+  return `
+  <div class="card" ${highlight?'style="border:3px solid #2563eb"':''}>
+    <h2>${p.name}</h2>
+    <div class="progress">
+      <div class="bar" style="width:${pc}%;background:${NAME_COLORS[p.name]||''}"></div>
+    </div>
+    <p>${p.total} / ${p.goal} (${pc}%)</p>
+  </div>`;
+}
+
 function render(people){
 const dash=document.getElementById("dashboard");
-dash.innerHTML="";
+const managers=document.getElementById("managers");
+dash.innerHTML=""; managers.innerHTML="";
+
 const teamTotal=people.reduce((a,b)=>a+b.total,0);
 const teamPct=pct(teamTotal,TEAM_GOAL);
+
+if(teamPct>=25)celebrate("lap1");
+if(teamPct>=50)celebrate("lap2");
+if(teamPct>=75)celebrate("lap3");
+if(teamPct>=100)celebrate("finish");
 
 document.getElementById("team").innerHTML=`
 <div class="card team">
@@ -367,16 +321,35 @@ teamPct>=50?"Lap 3":
 teamPct>=25?"Lap 2":"Lap 1";
 
 people.sort((a,b)=>b.total-a.total);
-people.forEach(p=>{
+
+/* MVP */
+const mvp=people.find(p=>p.total>0);
+document.getElementById("mvp").innerHTML=mvp?
+`🏆 MVP<br><strong>${mvp.name}</strong><br>${mvp.total} enrollments`:
+`🏆 MVP<br><strong>Waiting…</strong>`;
+
+/* Podium */
+const ranked=people.filter(p=>p.total>0);
+document.getElementById("podium").innerHTML=
+`<h3>🏁 Podium</h3>`+
+(ranked.length?ranked.slice(0,3).map((p,i)=>
+`<div class="podium-row">${["🥇","🥈","🥉"][i]} ${p.name}<span>${p.total}</span></div>`
+).join(""):"Waiting…");
+
+const idx=people.findIndex(p=>p.name===MANAGER_START_NAME);
+const regulars=idx<0?people:people.slice(0,idx);
+const mgrs=idx<0?[]:people.slice(idx);
+
+regulars.forEach((p,i)=>{
   dash.innerHTML+=`
   <div class="card">
-    <h2>${p.name}</h2>
-    <div class="progress">
-      <div class="bar" style="width:${pct(p.total,p.goal)}%;background:${NAME_COLORS[p.name]||''}"></div>
-    </div>
-    <p>${p.total} / ${p.goal}</p>
+    ${teamTotal>0&&i<3?`<div class="medal">${["🥇","🥈","🥉"][i]}</div>`:""}
+    ${createCard(p).slice(21)}
   </div>`;
 });
+
+if(mgrs.length) managers.innerHTML+=`<h2>⭐ Managers</h2>`;
+mgrs.forEach(p=>managers.innerHTML+=createCard(p,true));
 }
 
 loadData();
