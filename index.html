@@ -5,85 +5,80 @@
 <title>🏁 Enrollment Race to 550</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- Confetti -->
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <style>
 
-/* ======================================================
-   CHECKERED FINISH LINE (TOP STRIP)
-====================================================== */
+/* ✅ REMOVE BOTTOM SCROLLBAR */
+html, body {
+  overflow-x: hidden;
+}
+
+/* ================= CHECKERED FINISH LINE ================= */
 body::before{
   content:"";
   position:fixed;
-  top:0;left:0;
-  width:100%;height:28px;
+  top:0;left:0;width:100%;height:28px;
   background:repeating-linear-gradient(90deg,#000 0 20px,#fff 20px 40px);
   z-index:999;
 }
 
-/* ======================================================
-   BASE RACETRACK BACKGROUND
-====================================================== */
+/* ================= BASE RACETRACK ================= */
 body{
   margin:0;
   padding:60px 14px 60px;
   font-family:Arial,sans-serif;
-  text-align:center;
   background:repeating-linear-gradient(
     90deg,#86efac 0 60px,#a7f3d0 60px 120px
   );
+  text-align:center;
 }
 
-/* ======================================================
-   HOLIDAY THEMES (AUTO)
-====================================================== */
+/* ================= HOLIDAY THEMES ================= */
 body.us-holiday{
-  background:repeating-linear-gradient(90deg,#ef4444 0 40px,#fff 40px 80px,#2563eb 80px 120px);
+  background:repeating-linear-gradient(
+    90deg,#ef4444 0 40px,#fff 40px 80px,#2563eb 80px 120px
+  );
 }
 body.mx-holiday{
-  background:repeating-linear-gradient(90deg,#16a34a 0 40px,#fff 40px 80px,#dc2626 80px 120px);
+  background:repeating-linear-gradient(
+    90deg,#16a34a 0 40px,#fff 40px 80px,#dc2626 80px 120px
+  );
 }
 body.in-holiday{
-  background:repeating-linear-gradient(90deg,#f59e0b 0 40px,#fff 40px 80px,#16a34a 80px 120px);
+  background:repeating-linear-gradient(
+    90deg,#f59e0b 0 40px,#fff 40px 80px,#16a34a 80px 120px
+  );
 }
 body.ph-holiday{
-  background:repeating-linear-gradient(90deg,#1d4ed8 0 40px,#fff 40px 80px,#dc2626 80px 120px);
+  background:repeating-linear-gradient(
+    90deg,#1d4ed8 0 40px,#fff 40px 80px,#dc2626 80px 120px
+  );
 }
 
-/* ======================================================
-   TITLE
-====================================================== */
+/* ================= TITLE ================= */
 h1{
   color:#ef4444;
   font-size:42px;
-  margin-bottom:18px;
-  letter-spacing:1px;
+  margin-bottom:16px;
   animation:titlePulse 2.5s infinite;
 }
-
-/* SAFE TITLE ANIMATION */
 @keyframes titlePulse{
   0%,100%{transform:scale(1)}
   50%{transform:scale(1.03)}
 }
 
-/* ======================================================
-   BUTTONS
-====================================================== */
+/* ================= BUTTONS ================= */
 .buttons button{
   margin:6px;
   padding:10px 18px;
   border-radius:16px;
   border:none;
-  background:#fff;
   font-weight:bold;
   cursor:pointer;
 }
 
-/* ======================================================
-   CARDS
-====================================================== */
+/* ================= CARDS ================= */
 .card{
   background:#fff;
   max-width:380px;
@@ -95,9 +90,7 @@ h1{
 }
 .team{border:4px solid #ef4444}
 
-/* ======================================================
-   PROGRESS BARS + RACE CARS
-====================================================== */
+/* ================= PROGRESS ================= */
 .progress{
   background:#e5e7eb;
   height:20px;
@@ -107,21 +100,19 @@ h1{
 }
 .bar{
   height:100%;
-  transition:width .6s ease;
   background:linear-gradient(90deg,#facc15,#22c55e);
+  transition:width .6s ease;
   position:relative;
 }
 .bar::after{
   content:"🏎️💨";
   position:absolute;
-  right:-6px;
+  right:0;
   top:-16px;
   font-size:20px;
 }
 
-/* ======================================================
-   MEDALS
-====================================================== */
+/* ================= MEDALS ================= */
 .medal{
   position:absolute;
   top:-14px;
@@ -134,9 +125,7 @@ h1{
   to{transform:scale(1);opacity:1}
 }
 
-/* ======================================================
-   MVP & PODIUM (SAME SIZE AS SCORECARDS)
-====================================================== */
+/* ================= MVP & PODIUM ================= */
 #mvp,#podium{
   position:fixed;
   top:120px;
@@ -157,7 +146,6 @@ h1{
   border:4px solid silver;
   animation:bounce 2s infinite;
 }
-
 @keyframes pulse{
   0%,100%{transform:scale(1)}
   50%{transform:scale(1.05)}
@@ -174,17 +162,13 @@ h1{
   font-weight:bold;
 }
 
-/* ======================================================
-   MANAGERS SECTION
-====================================================== */
+/* ================= MANAGERS ================= */
 #managers h2{
   color:#1d4ed8;
   margin-top:30px;
 }
 
-/* ======================================================
-   LAP COUNTER
-====================================================== */
+/* ================= LAP COUNTER ================= */
 #lapCounter{
   position:fixed;
   bottom:20px;
@@ -196,9 +180,7 @@ h1{
   font-weight:bold;
 }
 
-/* ======================================================
-   SPONSOR LOGO
-====================================================== */
+/* ================= SPONSOR ================= */
 #sponsor{
   position:fixed;
   bottom:16px;
@@ -208,7 +190,6 @@ h1{
   width:120px;
   opacity:.9;
 }
-
 </style>
 </head>
 
@@ -234,76 +215,67 @@ h1{
 </div>
 
 <script>
-/* ======================================================
-   CONFIG
-====================================================== */
+/* ================= CONFIG ================= */
 const TEAM_GOAL = 550;
 const MANAGER_START_NAME = "Sabrina";
 
 const YEARLY_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=1984389436&single=true&output=csv";
 const WEEKLY_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=0&single=true&output=csv";
 
-/* ======================================================
-   HOLIDAY AUTO DETECTION
-====================================================== */
-(function(){
-  const d=new Date(),m=d.getMonth()+1,day=d.getDate();
-  if(m===7&&day===4)document.body.classList.add("us-holiday");
-  if((m===5&&day===5)||(m===9&&day===16))document.body.classList.add("mx-holiday");
-  if(m===8&&day===15)document.body.classList.add("in-holiday");
-  if((m===6&&day===12)||(m===8&&day===21))document.body.classList.add("ph-holiday");
-})();
+const NAME_COLORS = {
+  Leeah:"#facc15", Marissa:"#f9a8d4", Chakri:"#fb923c", Nitya:"#2563eb",
+  Sabrina:"#22c55e", Teresita:"#93c5fd", Edward:"#e5e7eb"
+};
 
-/* ======================================================
-   UTILITIES
-====================================================== */
-let view="month",weeklyData=[];
+let view="month", weeklyData=[];
 const pct=(a,b)=>b?Math.round(a/b*100):0;
 
+/* ================= CONFETTI ================= */
 function celebrate(key){
   if(localStorage.getItem(key))return;
-  confetti({particleCount:180,spread:100,origin:{y:.6}});
+  confetti({particleCount:160,spread:90,origin:{y:.6}});
   localStorage.setItem(key,"done");
 }
 
+/* ================= HOLIDAY AUTO DETECT ================= */
+(function(){
+  const d=new Date(),m=d.getMonth()+1,day=d.getDate();
+  if(m===7&&day===4)document.body.classList.add("us-holiday");
+  if(m===5&&day===5||m===9&&day===16)document.body.classList.add("mx-holiday");
+  if(m===8&&day===15)document.body.classList.add("in-holiday");
+  if(m===6&&day===12||m===8&&day===21)document.body.classList.add("ph-holiday");
+})();
+
+/* ================= VIEW ================= */
 function setView(v){view=v;loadData();}
 
-/* ======================================================
-   DATA LOAD
-====================================================== */
+/* ================= DATA ================= */
 function loadData(){
-Promise.all([
-  fetch(YEARLY_CSV).then(r=>r.text()),
-  fetch(WEEKLY_CSV).then(r=>r.text())
-]).then(([y,w])=>{
-  weeklyData=w.trim().split("\n").slice(1).map(r=>{
-    const c=r.split(",");
-    return{date:new Date(c[0]),name:c[1],value:+c[2]||0};
-  });
-
-  const people=y.trim().split("\n").slice(1).map(r=>{
-    const c=r.split(",");
-    return{name:c[0],goal:+c[1],ytd:+c[2],total:0};
-  });
-
-  const now=new Date();
-  people.forEach(p=>{
-    if(view==="ytd"){p.total=p.ytd;return;}
-    weeklyData.forEach(r=>{
-      if(r.name!==p.name)return;
-      const d=(now-r.date)/86400000;
-      if(view==="week"&&d>=0&&d<=7)p.total+=r.value;
-      if(view==="month"&&r.date.getMonth()===now.getMonth())p.total+=r.value;
-    });
-  });
-
-  render(people);
+Promise.all([fetch(YEARLY_CSV).then(r=>r.text()),fetch(WEEKLY_CSV).then(r=>r.text())])
+.then(([y,w])=>{
+weeklyData=w.trim().split("\n").slice(1).map(r=>{
+const c=r.split(",");
+return{date:new Date(c[0]),name:c[1],value:+c[2]||0};
+});
+const people=y.trim().split("\n").slice(1).map(r=>{
+const c=r.split(",");
+return{name:c[0],goal:+c[1],ytd:+c[2],total:0};
+});
+const now=new Date();
+people.forEach(p=>{
+if(view==="ytd"){p.total=p.ytd;return;}
+weeklyData.forEach(r=>{
+if(r.name!==p.name)return;
+const d=(now-r.date)/86400000;
+if(view==="week"&&d>=0&&d<=7)p.total+=r.value;
+if(view==="month"&&r.date.getMonth()===now.getMonth())p.total+=r.value;
+});
+});
+render(people);
 });
 }
 
-/* ======================================================
-   RENDER
-====================================================== */
+/* ================= RENDER ================= */
 function render(people){
 const dash=document.getElementById("dashboard");
 const managers=document.getElementById("managers");
@@ -311,32 +283,30 @@ dash.innerHTML="";managers.innerHTML="";
 
 const teamTotal=people.reduce((a,b)=>a+b.total,0);
 const teamPct=pct(teamTotal,TEAM_GOAL);
-if(teamPct>=100)celebrate("finish");
+if(teamPct>=50)celebrate("halfway");
 
 document.getElementById("team").innerHTML=`
 <div class="card team">
 <h2>🏁 Team Goal</h2>
 <div class="progress"><div class="bar" style="width:${teamPct}%"></div></div>
-<p>${teamTotal} / ${TEAM_GOAL} (${teamPct}%)</p>
-</div>`;
+<p>${teamTotal} / ${TEAM_GOAL} (${teamPct}%)</p></div>`;
 
-document.getElementById("lapCounter").innerText =
+document.getElementById("lapCounter").innerText=
 teamPct>=100?"🏁 Finished!":teamPct>=75?"Final Lap":teamPct>=50?"Lap 3":teamPct>=25?"Lap 2":"Lap 1";
 
 people.sort((a,b)=>b.total-a.total);
 
 /* MVP */
 const mvp=people.find(p=>p.total>0);
-document.getElementById("mvp").innerHTML = mvp ?
+document.getElementById("mvp").innerHTML=mvp?
 `🏆 MVP<br><strong>${mvp.name}</strong><br>${mvp.total} enrollments`
 :`🏆 MVP<br><strong>Waiting…</strong>`;
 
 /* Podium */
 const ranked=people.filter(p=>p.total>0);
-document.getElementById("podium").innerHTML =
-`<h3>🏁 Podium</h3>` +
-(ranked.length ? ranked.slice(0,3).map((p,i)=>`
-<div class="podium-row">${["🥇","🥈","🥉"][i]} ${p.name}<span>${p.total}</span></div>`).join("") : "Waiting…");
+document.getElementById("podium").innerHTML=
+`<h3>🏁 Podium</h3>`+(ranked.length?ranked.slice(0,3).map((p,i)=>
+`<div class="podium-row">${["🥇","🥈","🥉"][i]} ${p.name}<span>${p.total}</span></div>`).join(""):`Waiting…`);
 
 const idx=people.findIndex(p=>p.name===MANAGER_START_NAME);
 const regulars=idx<0?people:people.slice(0,idx);
@@ -348,9 +318,8 @@ dash.innerHTML+=`
 <div class="card">
 ${teamTotal>0&&i<3?`<div class="medal">${["🥇","🥈","🥉"][i]}</div>`:""}
 <h2>${p.name}</h2>
-<div class="progress"><div class="bar" style="width:${pc}%"></div></div>
-<p>${p.total} / ${p.goal} (${pc}%)</p>
-</div>`;
+<div class="progress"><div class="bar" style="width:${pc}%;background:${NAME_COLORS[p.name]||''}"></div></div>
+<p>${p.total} / ${p.goal} (${pc}%)</p></div>`;
 });
 
 if(mgrs.length) managers.innerHTML+=`<h2>⭐ Managers</h2>`;
@@ -359,9 +328,8 @@ const pc=pct(p.total,p.goal);
 managers.innerHTML+=`
 <div class="card" style="border:3px solid #2563eb">
 <h2>${p.name}</h2>
-<div class="progress"><div class="bar" style="width:${pc}%"></div></div>
-<p>${p.total} / ${p.goal} (${pc}%)</p>
-</div>`;
+<div class="progress"><div class="bar" style="width:${pc}%;background:${NAME_COLORS[p.name]||''}"></div></div>
+<p>${p.total} / ${p.goal} (${pc}%)</p></div>`;
 });
 }
 
@@ -370,4 +338,3 @@ loadData();
 
 </body>
 </html>
-
