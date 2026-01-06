@@ -82,28 +82,27 @@ h1{
   transition:width .6s cubic-bezier(.34,1.56,.64,1);
   position:relative;
 }
-
-/* ====== ADDITIVE CAR STATES (does NOT replace existing bar) ====== */
 .bar::after{
-  content:attr(data-car);
+  content:"🚗";
   position:absolute;
-  right:0;
+  right:-4px;
   top:-18px;
-  font-size:20px;
-  transform:scaleX(-1); /* flipped to face right */
+  font-size:22px;
+  transition:all .4s ease;
 }
 
-.bar.fast::after{font-size:22px}
+/* ===== CAR UPGRADES ===== */
+.bar.fast::after{content:"🏎️"}
 .bar.turbo::after{
-  font-size:24px;
-  animation:engineShake .15s infinite;
+  content:"🏎️🔥";
+  animation:shake .12s infinite;
 }
-
-/* Turbo shake */
-@keyframes engineShake{
-  0%{transform:translate(0,0) scaleX(-1)}
-  50%{transform:translate(1px,-1px) scaleX(-1)}
-  100%{transform:translate(-1px,1px) scaleX(-1)}
+@keyframes shake{
+  0%{transform:translate(0,0)}
+  25%{transform:translate(1px,-1px)}
+  50%{transform:translate(-1px,1px)}
+  75%{transform:translate(1px,1px)}
+  100%{transform:translate(0,0)}
 }
 
 /* ================= MEDALS ================= */
@@ -112,6 +111,11 @@ h1{
   top:-14px;
   right:-14px;
   font-size:34px;
+  animation:pop .4s ease;
+}
+@keyframes pop{
+  from{transform:scale(.3);opacity:0}
+  to{transform:scale(1);opacity:1}
 }
 
 /* ================= MVP / PODIUM ================= */
@@ -127,6 +131,16 @@ h1{
 #mvp{
   left:16px;
   border:4px solid #f59e0b;
+}
+#mvp.active{
+  box-shadow:
+    0 0 14px rgba(250,204,21,.8),
+    0 0 30px rgba(250,204,21,.6);
+  animation:mvpGlow 1.6s infinite;
+}
+@keyframes mvpGlow{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.05)}
 }
 #podium{
   right:16px;
@@ -190,6 +204,13 @@ function setView(v,btn){
   loadData();
 }
 
+function applyCar(bar,percent){
+  if(!bar) return;
+  bar.classList.remove("fast","turbo");
+  if(percent>=80) bar.classList.add("turbo");
+  else if(percent>=60) bar.classList.add("fast");
+}
+
 function loadData(){
 Promise.all([
   fetch(YEARLY_CSV).then(r=>r.text()),
@@ -230,22 +251,6 @@ render(people);
 });
 }
 
-/* ===== ADDITIVE CAR LOGIC (no layout change) ===== */
-function applyCar(bar,percent){
-  bar.classList.remove("fast","turbo");
-  if(percent>=80){
-    bar.dataset.car="🏎️🔥";
-    bar.classList.add("turbo");
-  }else if(percent>=60){
-    bar.dataset.car="🏎️";
-    bar.classList.add("fast");
-  }else if(percent>=30){
-    bar.dataset.car="🚗";
-  }else{
-    bar.dataset.car="🏁";
-  }
-}
-
 function render(people){
 const dash=document.getElementById("dashboard");
 const managers=document.getElementById("managers");
@@ -272,17 +277,23 @@ people.sort((a,b)=>b.total-a.total);
 
 /* MVP */
 const mvp=people.find(p=>p.total>0);
-document.getElementById("mvp").innerHTML=mvp?
-`🏆 MVP<br><strong>${mvp.name}</strong><br>${mvp.total} enrollments`:
-`🏆 MVP<br><strong>Waiting…</strong>`;
+const mvpBox=document.getElementById("mvp");
+if(mvp){
+  mvpBox.classList.add("active");
+  mvpBox.innerHTML=`🏆 MVP<br><strong>${mvp.name}</strong><br>${mvp.total} enrollments`;
+}else{
+  mvpBox.classList.remove("active");
+  mvpBox.innerHTML=`🏆 MVP<br><strong>Waiting…</strong>`;
+}
 
-/* Podium */
+/* PODIUM */
 const ranked=people.filter(p=>p.total>0);
-document.getElementById("podium").innerHTML=
+const podium=document.getElementById("podium");
+podium.innerHTML=ranked.length?
 `<h3>🏁 Podium</h3>`+
-(ranked.slice(0,3).map((p,i)=>
+ranked.slice(0,3).map((p,i)=>
 `<div class="podium-row">${["🥇","🥈","🥉"][i]} ${p.name}<span>${p.total}</span></div>`
-).join(""));
+).join(""):`<h3>🏁 Podium</h3><p>Waiting…</p>`;
 
 const idx=people.findIndex(p=>p.name===MANAGER_START_NAME);
 const regulars=idx<0?people:people.slice(0,idx);
@@ -292,7 +303,7 @@ regulars.forEach((p,i)=>{
   const percent=pct(p.total,p.goal);
   dash.innerHTML+=`
 <div class="card">
-${i<3?`<div class="medal">${["🥇","🥈","🥉"][i]}</div>`:""}
+${p.total>0&&i<3?`<div class="medal">${["🥇","🥈","🥉"][i]}</div>`:""}
 <h2>${p.name}</h2>
 <div class="progress"><div class="bar" id="bar-${i}" style="width:${percent}%"></div></div>
 <p>${p.total} / ${p.goal}</p>
@@ -318,3 +329,4 @@ loadData();
 
 </body>
 </html>
+
