@@ -24,22 +24,10 @@ body{
   margin:0;
   padding:60px 14px 60px;
   font-family:Arial,sans-serif;
-  background:repeating-linear-gradient(90deg,#86efac 0 60px,#a7f3d0 60px 120px);
+  background:repeating-linear-gradient(
+    90deg,#86efac 0 60px,#a7f3d0 60px 120px
+  );
   text-align:center;
-}
-
-/* ================= HOLIDAYS ================= */
-body.us-holiday{
-  background:repeating-linear-gradient(90deg,#ef4444 0 40px,#fff 40px 80px,#2563eb 80px 120px);
-}
-body.mx-holiday{
-  background:repeating-linear-gradient(90deg,#16a34a 0 40px,#fff 40px 80px,#dc2626 80px 120px);
-}
-body.in-holiday{
-  background:repeating-linear-gradient(90deg,#f59e0b 0 40px,#fff 40px 80px,#16a34a 80px 120px);
-}
-body.ph-holiday{
-  background:repeating-linear-gradient(90deg,#1d4ed8 0 40px,#fff 40px 80px,#dc2626 80px 120px);
 }
 
 /* ================= TITLE ================= */
@@ -47,7 +35,6 @@ h1{
   color:#ef4444;
   font-size:42px;
   margin-bottom:16px;
-  letter-spacing:.5px;
   text-shadow:0 3px 8px rgba(0,0,0,.15);
   animation:titlePulse 2.5s infinite;
 }
@@ -82,18 +69,31 @@ h1{
 }
 .team{border:4px solid #ef4444}
 
-/* ================= PROGRESS ================= */
+/* ================= PROGRESS TRACK ================= */
 .progress{
   background:#e5e7eb;
-  height:20px;
+  height:22px;
   border-radius:14px;
   overflow:hidden;
   margin:14px 0;
+  position:relative;
 }
+
+/* ================= PROGRESS BAR ================= */
 .bar{
   height:100%;
   background:linear-gradient(90deg,#facc15,#22c55e);
-  transition:width .6s cubic-bezier(.34,1.56,.64,1);
+  transition:width .9s cubic-bezier(.34,1.56,.64,1);
+}
+
+/* ================= RACE CAR ================= */
+.car{
+  position:absolute;
+  top:-20px;
+  font-size:22px;
+  transform:scaleX(-1); /* FLIP CAR FORWARD */
+  transition:left .9s cubic-bezier(.34,1.56,.64,1);
+  pointer-events:none;
 }
 
 /* ================= MEDALS ================= */
@@ -102,11 +102,6 @@ h1{
   top:-14px;
   right:-14px;
   font-size:34px;
-  animation:pop .4s ease;
-}
-@keyframes pop{
-  from{transform:scale(.3);opacity:0}
-  to{transform:scale(1);opacity:1}
 }
 
 /* ================= MVP / PODIUM ================= */
@@ -136,7 +131,10 @@ h1{
 }
 
 /* ================= MANAGERS ================= */
-#managers h2{color:#1d4ed8;margin-top:30px}
+#managers h2{
+  color:#1d4ed8;
+  margin-top:30px;
+}
 
 /* ================= LAP COUNTER ================= */
 #lapCounter{
@@ -151,8 +149,15 @@ h1{
 }
 
 /* ================= SPONSOR ================= */
-#sponsor{position:fixed;bottom:16px;left:16px}
-#sponsor img{max-width:120px;height:auto}
+#sponsor{
+  position:fixed;
+  bottom:16px;
+  left:16px;
+}
+#sponsor img{
+  max-width:120px;
+  opacity:.9;
+}
 </style>
 </head>
 
@@ -169,7 +174,7 @@ h1{
 <div id="mvp"></div>
 <div id="podium"></div>
 <div id="team"></div>
-<div id="dashboard"><p>🏎️ Loading race data…</p></div>
+<div id="dashboard"></div>
 <div id="managers"></div>
 <div id="lapCounter"></div>
 
@@ -178,6 +183,7 @@ h1{
 </div>
 
 <script>
+/* ================= CONFIG ================= */
 const TEAM_GOAL = 550;
 const MANAGER_START_NAME = "Sabrina";
 
@@ -185,9 +191,9 @@ const YEARLY_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5Rz
 const WEEKLY_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=0&single=true&output=csv";
 
 let view="month", weeklyData=[];
-
 const pct=(a,b)=>b?Math.round(a/b*100):0;
 
+/* ================= VIEW ================= */
 function setView(v,btn){
   view=v;
   document.querySelectorAll(".buttons button").forEach(b=>b.classList.remove("active"));
@@ -195,79 +201,97 @@ function setView(v,btn){
   loadData();
 }
 
+/* ================= DATA ================= */
 function loadData(){
 Promise.all([
   fetch(YEARLY_CSV).then(r=>r.text()),
   fetch(WEEKLY_CSV).then(r=>r.text())
 ]).then(([y,w])=>{
 
-  /* ✅ FIXED WEEKLY CSV MAPPING */
-  weeklyData = w.trim().split("\n").slice(1).map(r=>{
-    const c = r.split(",");
-    return{
-      date: new Date(c[0] + "T00:00:00"), // ISO_Date
-      name: c[2].trim(),                 // Team Member
-      value: Number(c[4]) || 0           // Enrollments
-    };
+weeklyData=w.trim().split("\n").slice(1).map(r=>{
+  const c=r.split(",");
+  return {date:new Date(c[0]), name:c[1], value:+c[2]||0};
+});
+
+const people=y.trim().split("\n").slice(1).map(r=>{
+  const c=r.split(",");
+  return {name:c[0], goal:+c[1], ytd:+c[2], total:0};
+});
+
+const now=new Date();
+const startOfWeek=new Date(now);
+startOfWeek.setDate(now.getDate()-now.getDay());
+
+people.forEach(p=>{
+  if(view==="ytd"){ p.total=p.ytd; return; }
+  weeklyData.forEach(r=>{
+    if(r.name!==p.name) return;
+    if(view==="week" && r.date>=startOfWeek) p.total+=r.value;
+    if(view==="month" &&
+       r.date.getMonth()===now.getMonth() &&
+       r.date.getFullYear()===now.getFullYear()
+    ) p.total+=r.value;
   });
+});
 
-  const people=y.trim().split("\n").slice(1).map(r=>{
-    const c=r.split(",");
-    return{name:c[0],goal:+c[1],ytd:+c[2],total:0};
-  });
-
-  const now=new Date();
-  const startOfWeek=new Date(now);
-  startOfWeek.setDate(now.getDate()-now.getDay());
-
-  people.forEach(p=>{
-    if(view==="ytd"){p.total=p.ytd;return;}
-    weeklyData.forEach(r=>{
-      if(r.name!==p.name)return;
-      if(view==="week" && r.date>=startOfWeek) p.total+=r.value;
-      if(view==="month" &&
-        r.date.getMonth()===now.getMonth() &&
-        r.date.getFullYear()===now.getFullYear()
-      ) p.total+=r.value;
-    });
-  });
-
-  render(people);
+render(people);
 });
 }
 
-function render(people){
-  const dash=document.getElementById("dashboard");
-  dash.innerHTML="";
-
-  const teamTotal=people.reduce((a,b)=>a+b.total,0);
-  const teamPct=pct(teamTotal,TEAM_GOAL);
-
-  document.getElementById("team").innerHTML=`
-  <div class="card team">
-    <h2>🏁 Team Goal</h2>
-    <div class="progress"><div class="bar" style="width:${teamPct}%"></div></div>
-    <p>${teamTotal} / ${TEAM_GOAL} (${teamPct}%)</p>
+/* ================= RENDER ================= */
+function createCard(p,highlight=false){
+  const pc=pct(p.total,p.goal);
+  return `
+  <div class="card" ${highlight?'style="border:3px solid #2563eb"':''}>
+    <h2>${p.name}</h2>
+    <div class="progress">
+      <div class="bar" style="width:${pc}%"></div>
+      <div class="car" style="left:calc(${pc}% - 18px)">🏎️</div>
+    </div>
+    <p>${p.total} / ${p.goal} (${pc}%)</p>
   </div>`;
+}
 
-  document.getElementById("lapCounter").innerText=
-    teamPct>=100?"🏁 Finished!":
-    teamPct>=75?"Final Lap":
-    teamPct>=50?"Lap 3":
-    teamPct>=25?"Lap 2":"Lap 1";
+function render(people){
+const dash=document.getElementById("dashboard");
+const managers=document.getElementById("managers");
+dash.innerHTML=""; managers.innerHTML="";
 
-  people.sort((a,b)=>b.total-a.total);
+const teamTotal=people.reduce((a,b)=>a+b.total,0);
+const teamPct=pct(teamTotal,TEAM_GOAL);
 
-  people.forEach(p=>{
-    dash.innerHTML+=`
-    <div class="card">
-      <h2>${p.name}</h2>
-      <div class="progress">
-        <div class="bar" style="width:${pct(p.total,p.goal)}%"></div>
-      </div>
-      <p>${p.total} / ${p.goal}</p>
-    </div>`;
-  });
+document.getElementById("team").innerHTML=`
+<div class="card team">
+<h2>🏁 Team Goal</h2>
+<div class="progress">
+  <div class="bar" style="width:${teamPct}%"></div>
+  <div class="car" style="left:calc(${teamPct}% - 18px)">🏎️</div>
+</div>
+<p>${teamTotal} / ${TEAM_GOAL} (${teamPct}%)</p>
+</div>`;
+
+people.sort((a,b)=>b.total-a.total);
+
+/* MVP */
+document.getElementById("mvp").innerHTML=
+people[0]?.total
+? `🏆 MVP<br><strong>${people[0].name}</strong><br>${people[0].total} enrollments`
+: `🏆 MVP<br>Waiting…`;
+
+/* Podium */
+document.getElementById("podium").innerHTML =
+`<h3>🏁 Podium</h3>` +
+people.slice(0,3).map((p,i)=>
+`<div class="podium-row">${["🥇","🥈","🥉"][i]} ${p.name}<span>${p.total}</span></div>`
+).join("");
+
+const idx=people.findIndex(p=>p.name===MANAGER_START_NAME);
+const regulars=idx<0?people:people.slice(0,idx);
+const mgrs=idx<0?[]:people.slice(idx);
+
+regulars.forEach(p=>dash.innerHTML+=createCard(p));
+if(mgrs.length) managers.innerHTML+=`<h2>⭐ Managers</h2>`;
+mgrs.forEach(p=>managers.innerHTML+=createCard(p,true));
 }
 
 loadData();
