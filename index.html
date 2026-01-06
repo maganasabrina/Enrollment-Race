@@ -206,7 +206,6 @@ h1{
 </div>
 
 <script>
-/* ================= CONFIG ================= */
 const TEAM_GOAL = 550;
 const MANAGER_START_NAME = "Sabrina";
 
@@ -222,23 +221,19 @@ const NAME_COLORS = {
 let view="month", weeklyData=[];
 const pct=(a,b)=>b?Math.round(a/b*100):0;
 
-/* ================= CONFETTI ================= */
 function celebrate(key){
   if(localStorage.getItem(key))return;
   confetti({particleCount:160,spread:90,origin:{y:.6}});
   localStorage.setItem(key,"done");
 }
 
-/* ================= HOLIDAY AUTO ================= */
-(()=>{
-  const d=new Date(),m=d.getMonth()+1,day=d.getDate();
-  if(m===7&&day===4)document.body.classList.add("us-holiday");
-  if(m===5&&day===5||m===9&&day===16)document.body.classList.add("mx-holiday");
-  if(m===8&&day===15)document.body.classList.add("in-holiday");
-  if(m===6&&day===12||m===8&&day===21)document.body.classList.add("ph-holiday");
+(()=>{const d=new Date(),m=d.getMonth()+1,day=d.getDate();
+if(m===7&&day===4)document.body.classList.add("us-holiday");
+if(m===5&&day===5||m===9&&day===16)document.body.classList.add("mx-holiday");
+if(m===8&&day===15)document.body.classList.add("in-holiday");
+if(m===6&&day===12||m===8&&day===21)document.body.classList.add("ph-holiday");
 })();
 
-/* ================= VIEW ================= */
 function setView(v,btn){
   view=v;
   document.querySelectorAll(".buttons button").forEach(b=>b.classList.remove("active"));
@@ -246,7 +241,6 @@ function setView(v,btn){
   loadData();
 }
 
-/* ================= DATA ================= */
 function loadData(){
 Promise.all([
   fetch(YEARLY_CSV).then(r=>r.text()),
@@ -270,28 +264,12 @@ people.forEach(p=>{
   weeklyData.forEach(r=>{
     if(r.name!==p.name)return;
     if(view==="week" && r.date>=startOfWeek) p.total+=r.value;
-    if(view==="month" &&
-       r.date.getMonth()===now.getMonth() &&
-       r.date.getFullYear()===now.getFullYear()
-    ) p.total+=r.value;
+    if(view==="month" && r.date.getMonth()===now.getMonth() && r.date.getFullYear()===now.getFullYear()) p.total+=r.value;
   });
 });
 
 render(people);
 });
-}
-
-/* ================= RENDER ================= */
-function createCard(p,highlight=false){
-  const pc=pct(p.total,p.goal);
-  return `
-  <div class="card" ${highlight?'style="border:3px solid #2563eb"':''}>
-    <h2>${p.name}</h2>
-    <div class="progress">
-      <div class="bar" style="width:${pc}%;background:${NAME_COLORS[p.name]||''}"></div>
-    </div>
-    <p>${p.total} / ${p.goal} (${pc}%)</p>
-  </div>`;
 }
 
 function render(people){
@@ -322,16 +300,13 @@ teamPct>=25?"Lap 2":"Lap 1";
 
 people.sort((a,b)=>b.total-a.total);
 
-/* MVP */
 const mvp=people.find(p=>p.total>0);
 document.getElementById("mvp").innerHTML=mvp?
 `🏆 MVP<br><strong>${mvp.name}</strong><br>${mvp.total} enrollments`:
 `🏆 MVP<br><strong>Waiting…</strong>`;
 
-/* Podium */
 const ranked=people.filter(p=>p.total>0);
-document.getElementById("podium").innerHTML=
-`<h3>🏁 Podium</h3>`+
+document.getElementById("podium").innerHTML=`<h3>🏁 Podium</h3>`+
 (ranked.length?ranked.slice(0,3).map((p,i)=>
 `<div class="podium-row">${["🥇","🥈","🥉"][i]} ${p.name}<span>${p.total}</span></div>`
 ).join(""):"Waiting…");
@@ -344,12 +319,23 @@ regulars.forEach((p,i)=>{
   dash.innerHTML+=`
   <div class="card">
     ${teamTotal>0&&i<3?`<div class="medal">${["🥇","🥈","🥉"][i]}</div>`:""}
-    ${createCard(p).slice(21)}
+    <h2>${p.name}</h2>
+    <div class="progress">
+      <div class="bar" style="width:${pct(p.total,p.goal)}%;background:${NAME_COLORS[p.name]||''}"></div>
+    </div>
+    <p>${p.total} / ${p.goal} (${pct(p.total,p.goal)}%)</p>
   </div>`;
 });
 
 if(mgrs.length) managers.innerHTML+=`<h2>⭐ Managers</h2>`;
-mgrs.forEach(p=>managers.innerHTML+=createCard(p,true));
+mgrs.forEach(p=>managers.innerHTML+=`
+<div class="card" style="border:3px solid #2563eb">
+<h2>${p.name}</h2>
+<div class="progress">
+  <div class="bar" style="width:${pct(p.total,p.goal)}%;background:${NAME_COLORS[p.name]||''}"></div>
+</div>
+<p>${p.total} / ${p.goal} (${pct(p.total,p.goal)}%)</p>
+</div>`);
 }
 
 loadData();
@@ -357,3 +343,4 @@ loadData();
 
 </body>
 </html>
+
