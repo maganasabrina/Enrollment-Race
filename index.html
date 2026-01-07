@@ -8,7 +8,6 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <style>
-/* ================= GLOBAL ================= */
 html,body{overflow-x:hidden}
 body{
   margin:0;
@@ -17,8 +16,6 @@ body{
   background:repeating-linear-gradient(90deg,#86efac 0 60px,#a7f3d0 60px 120px);
   text-align:center;
 }
-
-/* ================= CHECKERED STRIP ================= */
 body::before{
   content:"";
   position:fixed;
@@ -26,29 +23,13 @@ body::before{
   background:repeating-linear-gradient(90deg,#000 0 20px,#fff 20px 40px);
   z-index:999;
 }
-
-/* ================= TITLE ================= */
-h1{
-  color:#ef4444;
-  font-size:40px;
-  margin-bottom:12px;
-}
-
-/* ================= VIEW BUTTONS ================= */
+h1{color:#ef4444;font-size:40px;margin-bottom:12px}
 .buttons button{
-  margin:6px;
-  padding:10px 18px;
-  border-radius:16px;
-  border:none;
-  font-weight:bold;
-  cursor:pointer;
+  margin:6px;padding:10px 18px;border-radius:16px;border:none;
+  font-weight:bold;cursor:pointer
 }
-.buttons button.active{
-  background:#22c55e;
-  color:white;
-}
+.buttons button.active{background:#22c55e;color:white}
 
-/* ================= TOP ROW ================= */
 #topRow{
   display:grid;
   grid-template-columns:260px 1fr 260px;
@@ -57,105 +38,72 @@ h1{
   margin:20px auto 30px;
   align-items:center;
 }
-
-/* ================= CARDS ================= */
 .card{
-  background:#fff;
-  padding:20px;
-  border-radius:22px;
+  background:#fff;padding:20px;border-radius:22px;
   box-shadow:0 10px 26px rgba(0,0,0,.15);
-  position:relative;
+  position:relative
 }
 .team{border:4px solid #ef4444}
 
-/* ================= PROGRESS ================= */
 .progress{
-  background:#e5e7eb;
-  height:18px;
-  border-radius:14px;
-  overflow:hidden;
-  margin:12px 0;
+  background:#e5e7eb;height:18px;border-radius:14px;
+  overflow:hidden;margin:12px 0
 }
 .bar{
   height:100%;
   background:linear-gradient(90deg,#facc15,#22c55e);
   transition:width .6s ease;
-  position:relative;
+  position:relative
 }
-.bar::after{
-  content:"🏎️";
-  position:absolute;
-  right:0;
-  top:-16px;
-}
+.bar::after{content:"🏎️";position:absolute;right:0;top:-16px}
 
-/* ================= TEAM MEMBERS ================= */
 #dashboard{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:16px;
-  max-width:1200px;
-  margin:0 auto 30px;
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:16px;max-width:1200px;margin:0 auto 30px
 }
-.leader{
-  transform:scale(1.05);
-  border:4px solid #f59e0b;
-}
+.leader{transform:scale(1.05);border:4px solid #f59e0b}
 
-/* ================= MANAGERS ================= */
-#managersHeader{
-  font-size:22px;
-  font-weight:bold;
-  color:#1d4ed8;
-  margin-bottom:14px;
-}
-#managers{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:16px;
-  max-width:900px;
-  margin:0 auto;
-}
-.manager-card{
-  border:3px solid #2563eb;
-}
-
-/* ================= MVP ================= */
 #mvp{
   border:4px solid #f59e0b;
-  font-size:20px;
-  font-weight:bold;
+  font-size:20px;font-weight:bold
 }
 #mvp.active{
-  animation:glow 1.5s infinite;
+  animation:glow 1.4s infinite;
 }
 @keyframes glow{
-  0%,100%{box-shadow:0 0 14px #fde047}
+  0%{box-shadow:0 0 10px #fde047}
   50%{box-shadow:0 0 30px #facc15}
+  100%{box-shadow:0 0 10px #fde047}
 }
 
-/* ================= PODIUM ================= */
-#podium{
-  border:4px solid silver;
-  font-size:18px;
+.mvp-badge{
+  position:absolute;top:-12px;right:-12px;
+  background:#facc15;color:#78350f;
+  padding:6px 10px;border-radius:999px;
+  font-size:12px;font-weight:bold
 }
+
+#managersHeader{
+  font-size:22px;font-weight:bold;
+  color:#1d4ed8;margin-bottom:14px
+}
+#managers{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:16px;max-width:900px;margin:0 auto
+}
+.manager-card{border:3px solid #2563eb}
+
+#podium{border:4px solid silver;font-size:18px}
 .podium-row{
-  display:flex;
-  justify-content:space-between;
-  padding:6px 0;
-  font-weight:bold;
+  display:flex;justify-content:space-between;
+  padding:6px 0;font-weight:bold
 }
 
-/* ================= LAP ================= */
 #lapCounter{
-  position:fixed;
-  bottom:16px;
-  left:50%;
+  position:fixed;bottom:16px;left:50%;
   transform:translateX(-50%);
-  background:#fff;
-  padding:8px 16px;
-  border-radius:16px;
-  font-weight:bold;
+  background:#fff;padding:8px 16px;
+  border-radius:16px;font-weight:bold
 }
 </style>
 </head>
@@ -170,36 +118,30 @@ h1{
   <button onclick="setView('week',this)">This Week</button>
 </div>
 
-<!-- ================= TOP ROW ================= -->
 <div id="topRow">
   <div id="mvp" class="card"></div>
   <div id="team"></div>
   <div id="podium" class="card"></div>
 </div>
 
-<!-- ================= TEAM MEMBERS ================= -->
 <div id="dashboard"></div>
 
-<!-- ================= MANAGERS ================= -->
 <div id="managersHeader">⭐ Managers</div>
 <div id="managers"></div>
 
 <div id="lapCounter"></div>
 
 <script>
-/* ================= CONFIG ================= */
-const TEAM_GOAL = 550;
+const TEAM_GOAL=550;
+const MANAGERS=["Sabrina","Edward","Teresita"];
+const YEARLY_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=1984389436&single=true&output=csv";
+const WEEKLY_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=0&single=true&output=csv";
 
-/* 🔑 EXPLICIT MANAGER LIST */
-const MANAGERS = ["Sabrina","Edward","Teresita"];
-
-/* ================= CSV LINKS ================= */
-const YEARLY_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=1984389436&single=true&output=csv";
-const WEEKLY_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=0&single=true&output=csv";
-
-let view="month", weeklyData=[];
+let view="month",weeklyData=[];
+let lastMVP=null,celebrated={};
 
 const pct=(a,b)=>b?Math.round(a/b*100):0;
+const fire=()=>confetti({particleCount:120,spread:80,origin:{y:.6}});
 
 function setView(v,btn){
   view=v;
@@ -210,37 +152,28 @@ function setView(v,btn){
 
 function loadData(){
 Promise.all([
-  fetch(YEARLY_CSV+"&t="+Date.now()).then(r=>r.text()),
-  fetch(WEEKLY_CSV+"&t="+Date.now()).then(r=>r.text())
+fetch(YEARLY_CSV+"&t="+Date.now()).then(r=>r.text()),
+fetch(WEEKLY_CSV+"&t="+Date.now()).then(r=>r.text())
 ]).then(([y,w])=>{
-
 weeklyData=w.trim().split("\n").slice(1).map(r=>{
   const c=r.split(",");
-  return{
-    date:new Date(c[0]+"T00:00:00"),
-    name:c[2].trim(),
-    value:+c[4]||0
-  };
+  return{date:new Date(c[0]+"T00:00:00"),name:c[2].trim(),value:+c[4]||0};
 });
-
 const people=y.trim().split("\n").slice(1).map(r=>{
   const c=r.split(",");
   return{name:c[0],goal:+c[1],ytd:+c[2],total:0};
 });
-
-const now=new Date();
-const startOfWeek=new Date(now);
+const now=new Date(),startOfWeek=new Date(now);
 startOfWeek.setDate(now.getDate()-now.getDay());
 
 people.forEach(p=>{
   if(view==="ytd"){p.total=p.ytd;return;}
   weeklyData.forEach(r=>{
     if(r.name!==p.name)return;
-    if(view==="week" && r.date>=startOfWeek) p.total+=r.value;
-    if(view==="month" && r.date.getMonth()===now.getMonth()) p.total+=r.value;
+    if(view==="week"&&r.date>=startOfWeek)p.total+=r.value;
+    if(view==="month"&&r.date.getMonth()===now.getMonth())p.total+=r.value;
   });
 });
-
 render(people);
 });
 }
@@ -248,16 +181,18 @@ render(people);
 function render(people){
 const dash=document.getElementById("dashboard");
 const mgr=document.getElementById("managers");
-dash.innerHTML=""; mgr.innerHTML="";
+dash.innerHTML="";mgr.innerHTML="";
 
 const racers=people.filter(p=>!MANAGERS.includes(p.name));
 const managers=people.filter(p=>MANAGERS.includes(p.name));
-
 racers.sort((a,b)=>b.total-a.total);
 
-/* ✅ TEAM GOAL (MANAGERS INCLUDED) */
-const teamTotal = people.reduce((a,b)=>a+b.total,0);
+const teamTotal=racers.reduce((a,b)=>a+b.total,0);
 const teamPct=pct(teamTotal,TEAM_GOAL);
+
+[25,50,75,100].forEach(m=>{
+  if(teamPct>=m&&!celebrated[m]){fire();celebrated[m]=true;}
+});
 
 document.getElementById("team").innerHTML=`
 <div class="card team">
@@ -266,33 +201,32 @@ document.getElementById("team").innerHTML=`
 <p>${teamTotal} / ${TEAM_GOAL} (${teamPct}%)</p>
 </div>`;
 
-/* MVP */
 const mvp=racers.find(p=>p.total>0);
 const mvpEl=document.getElementById("mvp");
 mvpEl.classList.toggle("active",!!mvp);
+
+if(mvp&&lastMVP!==mvp.name){fire();lastMVP=mvp.name;}
+
 mvpEl.innerHTML=mvp?
 `🏆 MVP<br><strong>${mvp.name}</strong><br>${mvp.total}`:
 `🏆 MVP<br>Waiting…`;
 
-/* PODIUM */
-const ranked=racers.filter(p=>p.total>0);
 document.getElementById("podium").innerHTML=
 `<h3>🏁 Podium</h3>`+
-(ranked.length?ranked.slice(0,3).map((p,i)=>
+racers.filter(p=>p.total>0).slice(0,3).map((p,i)=>
 `<div class="podium-row">${["🥇","🥈","🥉"][i]} ${p.name}<span>${p.total}</span></div>`
-).join(""):"Waiting…");
+).join("");
 
-/* TEAM MEMBERS */
 racers.forEach((p,i)=>{
 dash.innerHTML+=`
 <div class="card ${i===0&&p.total>0?"leader":""}">
+${i===0&&p.total>0?`<div class="mvp-badge">${lastMVP===p.name?"DEFENDING MVP":"MVP"}</div>`:""}
 <h3>${p.name}</h3>
 <div class="progress"><div class="bar" style="width:${pct(p.total,p.goal)}%"></div></div>
 <p>${p.total} / ${p.goal}</p>
 </div>`;
 });
 
-/* MANAGERS */
 managers.forEach(p=>{
 mgr.innerHTML+=`
 <div class="card manager-card">
@@ -302,12 +236,9 @@ mgr.innerHTML+=`
 </div>`;
 });
 
-/* LAP */
 document.getElementById("lapCounter").innerText=
-teamPct>=100?"🏁 Finished":
-teamPct>=75?"Final Lap":
-teamPct>=50?"Lap 3":
-teamPct>=25?"Lap 2":"Lap 1";
+teamPct>=100?"🏁 Finished":teamPct>=75?"Final Lap":
+teamPct>=50?"Lap 3":teamPct>=25?"Lap 2":"Lap 1";
 }
 
 loadData();
