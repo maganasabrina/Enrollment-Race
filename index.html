@@ -63,7 +63,7 @@ h1{color:#ef4444;font-size:40px;margin-bottom:12px}
   position:absolute;
   right:-12px;
   top:50%;
-  transform:translateY(-50%);
+  transform:translateY(-50%) scaleX(1);
   font-size:18px;
   pointer-events:none;
 }
@@ -212,7 +212,9 @@ const racers=people.filter(p=>!MANAGERS.includes(p.name));
 const managers=people.filter(p=>MANAGERS.includes(p.name));
 racers.sort((a,b)=>b.total-a.total);
 
-const teamTotal=racers.reduce((a,b)=>a+b.total,0);
+/* ✅ FIX: Managers count ONLY for YTD team goal */
+const teamPool = view==="ytd" ? people : racers;
+const teamTotal = teamPool.reduce((a,b)=>a+b.total,0);
 const teamPct=pct(teamTotal,TEAM_GOAL);
 
 [25,50,75,100].forEach(m=>{
