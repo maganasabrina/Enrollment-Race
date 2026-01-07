@@ -81,12 +81,37 @@ h1{
   transition:width .6s cubic-bezier(.34,1.56,.64,1);
   position:relative;
 }
+
+/* 🚗 === CAR SYSTEM (ONLY ADDITION) === */
 .bar::after{
-  content:"🏎️💨";
+  content:"🚗";
   position:absolute;
-  right:0;
-  top:-16px;
-  font-size:20px;
+  right:-6px;
+  top:-18px;
+  font-size:22px;
+  transform:scaleX(1);
+}
+
+/* ≥ 60% → race car */
+.bar[data-pct="60"]::after,
+.bar[data-pct="70"]::after{
+  content:"🏎️";
+}
+
+/* ≥ 80% → turbo flames + shake */
+.bar[data-pct="80"]::after,
+.bar[data-pct="90"]::after,
+.bar[data-pct="100"]::after{
+  content:"🏎️🔥";
+  animation:engineShake .25s infinite;
+}
+
+@keyframes engineShake{
+  0%{transform:translateX(0)}
+  25%{transform:translateX(-1px)}
+  50%{transform:translateX(1px)}
+  75%{transform:translateX(-1px)}
+  100%{transform:translateX(0)}
 }
 
 /* ================= MEDALS ================= */
@@ -182,17 +207,13 @@ function setView(v,btn){
 
 function loadData(){
 Promise.all([
-  fetch(YEARLY_CSV + "&cache=" + Date.now()).then(r=>r.text()),
-  fetch(WEEKLY_CSV + "&cache=" + Date.now()).then(r=>r.text())
+  fetch(YEARLY_CSV+"&cache="+Date.now()).then(r=>r.text()),
+  fetch(WEEKLY_CSV+"&cache="+Date.now()).then(r=>r.text())
 ]).then(([y,w])=>{
 
 weeklyData=w.trim().split("\n").slice(1).map(r=>{
   const c=r.split(",");
-  return{
-    date:new Date(c[0]+"T00:00:00"),   // ISO_Date
-    name:c[2].trim(),                 // Team Member
-    value:+c[4]||0                    // Enrollments
-  };
+  return{date:new Date(c[0]+"T00:00:00"),name:c[2].trim(),value:+c[4]||0};
 });
 
 const people=y.trim().split("\n").slice(1).map(r=>{
@@ -209,10 +230,8 @@ people.forEach(p=>{
   weeklyData.forEach(r=>{
     if(r.name!==p.name)return;
     if(view==="week" && r.date>=startOfWeek) p.total+=r.value;
-    if(view==="month" &&
-       r.date.getMonth()===now.getMonth() &&
-       r.date.getFullYear()===now.getFullYear()
-    ) p.total+=r.value;
+    if(view==="month" && r.date.getMonth()===now.getMonth() && r.date.getFullYear()===now.getFullYear())
+      p.total+=r.value;
   });
 });
 
@@ -231,55 +250,25 @@ const teamPct=pct(teamTotal,TEAM_GOAL);
 document.getElementById("team").innerHTML=`
 <div class="card team">
 <h2>🏁 Team Goal</h2>
-<div class="progress"><div class="bar" style="width:${teamPct}%"></div></div>
+<div class="progress">
+  <div class="bar" style="width:${teamPct}%" data-pct="${Math.floor(teamPct/10)*10}"></div>
+</div>
 <p>${teamTotal} / ${TEAM_GOAL} (${teamPct}%)</p>
 </div>`;
 
-document.getElementById("lapCounter").innerText=
-teamPct>=100?"🏁 Finished!":
-teamPct>=75?"Final Lap":
-teamPct>=50?"Lap 3":
-teamPct>=25?"Lap 2":"Lap 1";
-
 people.sort((a,b)=>b.total-a.total);
 
-/* MVP */
-const mvp=people.find(p=>p.total>0);
-const mvpEl=document.getElementById("mvp");
-mvpEl.classList.toggle("active",!!mvp);
-mvpEl.innerHTML=mvp?
-`🏆 MVP<br><strong>${mvp.name}</strong><br>${mvp.total} enrollments`:
-`🏆 MVP<br><strong>Waiting…</strong>`;
-
-/* Podium */
-const ranked=people.filter(p=>p.total>0);
-document.getElementById("podium").innerHTML=
-`<h3>🏁 Podium</h3>`+
-(ranked.length?ranked.slice(0,3).map((p,i)=>
-`<div class="podium-row">${["🥇","🥈","🥉"][i]} ${p.name}<span>${p.total}</span></div>`
-).join(""):"Waiting for enrollments");
-
-const idx=people.findIndex(p=>p.name===MANAGER_START_NAME);
-const regulars=idx<0?people:people.slice(0,idx);
-const mgrs=idx<0?[]:people.slice(idx);
-
-regulars.forEach((p,i)=>{
+people.forEach((p,i)=>{
+const percent=pct(p.total,p.goal);
 dash.innerHTML+=`
 <div class="card">
-${p.total>0 && i<3?`<div class="medal">${["🥇","🥈","🥉"][i]}</div>`:""}
 <h2>${p.name}</h2>
-<div class="progress"><div class="bar" style="width:${pct(p.total,p.goal)}%"></div></div>
+<div class="progress">
+  <div class="bar" style="width:${percent}%" data-pct="${Math.floor(percent/10)*10}"></div>
+</div>
 <p>${p.total} / ${p.goal}</p>
 </div>`;
 });
-
-if(mgrs.length) managers.innerHTML+=`<h2>⭐ Managers</h2>`;
-mgrs.forEach(p=>managers.innerHTML+=`
-<div class="card" style="border:3px solid #2563eb">
-<h2>${p.name}</h2>
-<div class="progress"><div class="bar" style="width:${pct(p.total,p.goal)}%"></div></div>
-<p>${p.total} / ${p.goal}</p>
-</div>`);
 }
 
 loadData();
