@@ -2,159 +2,129 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>🏁 Enrollment Race to 550</title>
+<title>Enrollment Race to 550</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
 <style>
-/* ================= GLOBAL ================= */
-html,body{overflow-x:hidden}
-body{
+html,body{
   margin:0;
-  padding:60px 16px 80px;
-  font-family:Arial,sans-serif;
-  background:repeating-linear-gradient(90deg,#86efac 0 60px,#a7f3d0 60px 120px);
-  text-align:center;
+  font-family:Arial, sans-serif;
+  overflow-x:hidden;
 }
 
-/* ================= CHECKERED STRIP ================= */
+/* BACKGROUND */
+body{
+  padding:90px 20px 80px;
+  text-align:center;
+  background:repeating-linear-gradient(
+    90deg,
+    #86efac 0 60px,
+    #a7f3d0 60px 120px
+  );
+}
+
+/* CHECKER LINE */
 body::before{
   content:"";
   position:fixed;
-  top:0;left:0;width:100%;height:26px;
-  background:repeating-linear-gradient(90deg,#000 0 20px,#fff 20px 40px);
-  z-index:999;
+  top:0;left:0;
+  width:100%;
+  height:26px;
+  background:repeating-linear-gradient(
+    90deg,#000 0 20px,#fff 20px 40px
+  );
+  z-index:10;
 }
 
-/* ================= TITLE ================= */
+/* TITLE */
 h1{
   color:#ef4444;
   font-size:40px;
   margin-bottom:12px;
 }
 
-/* ================= VIEW BUTTONS ================= */
+/* BUTTONS */
 .buttons button{
   margin:6px;
-  padding:10px 18px;
-  border-radius:16px;
+  padding:8px 16px;
+  border-radius:18px;
   border:none;
-  font-weight:bold;
   cursor:pointer;
+  font-weight:bold;
 }
-.buttons button.active{
+.buttons .active{
   background:#22c55e;
   color:white;
 }
 
-/* ================= TOP ROW ================= */
+/* TOP ROW */
 #topRow{
   display:grid;
-  grid-template-columns:260px 1fr 260px;
-  gap:16px;
-  max-width:1100px;
-  margin:20px auto 30px;
-  align-items:center;
+  grid-template-columns:240px 420px 240px;
+  gap:18px;
+  justify-content:center;
+  margin:30px auto 18px;
 }
 
-/* ================= CARDS ================= */
+/* CARDS */
 .card{
-  background:#fff;
-  padding:20px;
-  border-radius:22px;
+  background:white;
+  padding:18px;
+  border-radius:26px;
   box-shadow:0 10px 26px rgba(0,0,0,.15);
-  position:relative;
 }
-.team{border:4px solid #ef4444}
+.mvp{border:4px solid #f59e0b}
+.teamGoal{border:4px solid #ef4444}
+.podium{border:4px solid silver}
 
-/* ================= PROGRESS ================= */
+/* PROGRESS */
 .progress{
   background:#e5e7eb;
-  height:18px;
-  border-radius:14px;
+  height:16px;
+  border-radius:12px;
   overflow:hidden;
-  margin:12px 0;
+  margin:10px 0;
 }
 .bar{
   height:100%;
   background:linear-gradient(90deg,#facc15,#22c55e);
-  transition:width .6s ease;
-  position:relative;
-}
-.bar::after{
-  content:"🏎️";
-  position:absolute;
-  right:0;
-  top:-16px;
+  transition:width .4s ease;
 }
 
-/* ================= TEAM MEMBERS ================= */
-#dashboard{
+/* TEAM ROW */
+#teamGrid{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  gap:16px;
-  max-width:1200px;
-  margin:0 auto 30px;
-}
-.leader{
-  transform:scale(1.05);
-  border:4px solid #f59e0b;
+  gap:18px;
+  max-width:1100px;
+  margin:22px auto;
 }
 
-/* ================= MANAGERS ================= */
-#managersHeader{
-  font-size:22px;
+/* MANAGERS */
+#managersTitle{
+  margin:22px 0 12px;
+  font-size:20px;
+  color:#2563eb;
   font-weight:bold;
-  color:#1d4ed8;
-  margin-bottom:14px;
 }
 #managers{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:16px;
-  max-width:900px;
+  gap:18px;
+  max-width:760px;
   margin:0 auto;
 }
-.manager-card{
-  border:3px solid #2563eb;
-}
+.manager{border:3px solid #2563eb}
 
-/* ================= MVP ================= */
-#mvp{
-  border:4px solid #f59e0b;
-  font-size:20px;
-  font-weight:bold;
-}
-#mvp.active{
-  animation:glow 1.5s infinite;
-}
-@keyframes glow{
-  0%,100%{box-shadow:0 0 14px #fde047}
-  50%{box-shadow:0 0 30px #facc15}
-}
-
-/* ================= PODIUM ================= */
-#podium{
-  border:4px solid silver;
-  font-size:18px;
-}
-.podium-row{
-  display:flex;
-  justify-content:space-between;
-  padding:6px 0;
-  font-weight:bold;
-}
-
-/* ================= LAP ================= */
-#lapCounter{
+/* LAP */
+#lap{
   position:fixed;
-  bottom:16px;
+  bottom:18px;
   left:50%;
   transform:translateX(-50%);
-  background:#fff;
+  background:white;
   padding:8px 16px;
-  border-radius:16px;
+  border-radius:18px;
   font-weight:bold;
 }
 </style>
@@ -170,62 +140,48 @@ h1{
   <button onclick="setView('week',this)">This Week</button>
 </div>
 
-<!-- ================= TOP ROW ================= -->
 <div id="topRow">
-  <div id="mvp" class="card"></div>
-
-  <div id="team"></div>
-
-  <div id="podium" class="card"></div>
+  <div id="mvp" class="card mvp"></div>
+  <div id="teamGoal" class="card teamGoal"></div>
+  <div id="podium" class="card podium"></div>
 </div>
 
-<!-- ================= TEAM MEMBERS ================= -->
-<div id="dashboard"></div>
+<div id="teamGrid"></div>
 
-<!-- ================= MANAGERS ================= -->
-<div id="managersHeader">⭐ Managers</div>
+<div id="managersTitle">⭐ Managers</div>
 <div id="managers"></div>
 
-<div id="lapCounter"></div>
+<div id="lap"></div>
 
 <script>
-/* ================= CONFIG ================= */
+/* ===== CONFIG ===== */
 const TEAM_GOAL = 550;
-
-/* 🔑 EXPLICIT MANAGER LIST (FIXES YOUR ISSUE) */
 const MANAGERS = ["Sabrina","Edward","Teresita"];
 
-/* ================= CSV LINKS ================= */
 const YEARLY_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=1984389436&single=true&output=csv";
 const WEEKLY_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=0&single=true&output=csv";
 
-let view="month", weeklyData=[];
+let view="month";
 
-/* ================= HELPERS ================= */
-const pct=(a,b)=>b?Math.round(a/b*100):0;
-
-/* ================= VIEW ================= */
+/* ===== VIEW SWITCH ===== */
 function setView(v,btn){
   view=v;
-  document.querySelectorAll(".buttons button").forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll(".buttons button")
+    .forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");
-  loadData();
+  load();
 }
 
-/* ================= LOAD DATA ================= */
-function loadData(){
+/* ===== LOAD ===== */
+function load(){
 Promise.all([
   fetch(YEARLY_CSV+"&t="+Date.now()).then(r=>r.text()),
   fetch(WEEKLY_CSV+"&t="+Date.now()).then(r=>r.text())
 ]).then(([y,w])=>{
 
-weeklyData=w.trim().split("\n").slice(1).map(r=>{
+const weekly=w.trim().split("\n").slice(1).map(r=>{
   const c=r.split(",");
-  return{
-    date:new Date(c[0]+"T00:00:00"),
-    name:c[2].trim(),
-    value:+c[4]||0
-  };
+  return{d:new Date(c[0]),n:c[2].trim(),v:+c[4]||0};
 });
 
 const people=y.trim().split("\n").slice(1).map(r=>{
@@ -234,15 +190,14 @@ const people=y.trim().split("\n").slice(1).map(r=>{
 });
 
 const now=new Date();
-const startOfWeek=new Date(now);
-startOfWeek.setDate(now.getDate()-now.getDay());
+const sow=new Date(now);sow.setDate(now.getDate()-now.getDay());
 
 people.forEach(p=>{
   if(view==="ytd"){p.total=p.ytd;return;}
-  weeklyData.forEach(r=>{
-    if(r.name!==p.name)return;
-    if(view==="week" && r.date>=startOfWeek) p.total+=r.value;
-    if(view==="month" && r.date.getMonth()===now.getMonth()) p.total+=r.value;
+  weekly.forEach(r=>{
+    if(r.n!==p.name)return;
+    if(view==="week" && r.d>=sow)p.total+=r.v;
+    if(view==="month" && r.d.getMonth()===now.getMonth())p.total+=r.v;
   });
 });
 
@@ -250,74 +205,63 @@ render(people);
 });
 }
 
-/* ================= RENDER ================= */
-function render(people){
-const dash=document.getElementById("dashboard");
-const mgr=document.getElementById("managers");
-dash.innerHTML=""; mgr.innerHTML="";
+/* ===== RENDER ===== */
+function render(p){
+p.sort((a,b)=>b.total-a.total);
 
-const racers=people.filter(p=>!MANAGERS.includes(p.name));
-const managers=people.filter(p=>MANAGERS.includes(p.name));
+const leader=p[0];
+const team=p.filter(x=>!MANAGERS.includes(x.name));
+const managers=p.filter(x=>MANAGERS.includes(x.name));
 
-racers.sort((a,b)=>b.total-a.total);
-
-/* TEAM GOAL */
-const teamTotal=racers.reduce((a,b)=>a+b.total,0);
-const teamPct=pct(teamTotal,TEAM_GOAL);
-document.getElementById("team").innerHTML=`
-<div class="card team">
-<h3>🏁 Team Goal</h3>
-<div class="progress"><div class="bar" style="width:${teamPct}%"></div></div>
-<p>${teamTotal} / ${TEAM_GOAL} (${teamPct}%)</p>
-</div>`;
+const teamTotal=team.reduce((a,b)=>a+b.total,0);
+const pct=v=>Math.round(v/TEAM_GOAL*100);
 
 /* MVP */
-const mvp=racers.find(p=>p.total>0);
-const mvpEl=document.getElementById("mvp");
-mvpEl.classList.toggle("active",!!mvp);
-mvpEl.innerHTML=mvp?
-`🏆 MVP<br><strong>${mvp.name}</strong><br>${mvp.total}`:
-`🏆 MVP<br>Waiting…`;
+document.getElementById("mvp").innerHTML=
+`🏆 MVP<br><strong>${leader.name}</strong><br>${leader.total}`;
+
+/* TEAM GOAL */
+document.getElementById("teamGoal").innerHTML=`
+<h3>🏁 Team Goal</h3>
+<div class="progress">
+  <div class="bar" style="width:${pct(teamTotal)}%"></div>
+</div>
+${teamTotal} / ${TEAM_GOAL} (${pct(teamTotal)}%)
+`;
 
 /* PODIUM */
-const ranked=racers.filter(p=>p.total>0);
 document.getElementById("podium").innerHTML=
-`<h3>🏁 Podium</h3>`+
-(ranked.length?ranked.slice(0,3).map((p,i)=>
-`<div class="podium-row">${["🥇","🥈","🥉"][i]} ${p.name}<span>${p.total}</span></div>`
-).join(""):"Waiting…");
+"<h3>🏁 Podium</h3>"+
+team.slice(0,3).map((x,i)=>`
+<div>${["🥇","🥈","🥉"][i]} ${x.name} ${x.total}</div>`).join("");
 
-/* TEAM MEMBERS */
-racers.forEach((p,i)=>{
-dash.innerHTML+=`
-<div class="card ${i===0&&p.total>0?"leader":""}">
-<h3>${p.name}</h3>
-<div class="progress"><div class="bar" style="width:${pct(p.total,p.goal)}%"></div></div>
-<p>${p.total} / ${p.goal}</p>
-</div>`;
-});
+/* TEAM */
+document.getElementById("teamGrid").innerHTML=
+team.map(x=>`
+<div class="card">
+<strong>${x.name}</strong>
+<div class="progress"><div class="bar" style="width:${Math.round(x.total/x.goal*100)}%"></div></div>
+${x.total} / ${x.goal}
+</div>`).join("");
 
 /* MANAGERS */
-managers.forEach(p=>{
-mgr.innerHTML+=`
-<div class="card manager-card">
-<h3>${p.name}</h3>
-<div class="progress"><div class="bar" style="width:${pct(p.total,p.goal)}%"></div></div>
-<p>${p.total} / ${p.goal}</p>
-</div>`;
-});
+document.getElementById("managers").innerHTML=
+managers.map(x=>`
+<div class="card manager">
+<strong>${x.name}</strong>
+<div class="progress"><div class="bar" style="width:${Math.round(x.total/x.goal*100)}%"></div></div>
+${x.total} / ${x.goal}
+</div>`).join("");
 
 /* LAP */
-document.getElementById("lapCounter").innerText=
-teamPct>=100?"🏁 Finished":
-teamPct>=75?"Final Lap":
-teamPct>=50?"Lap 3":
-teamPct>=25?"Lap 2":"Lap 1";
+document.getElementById("lap").innerText=
+teamTotal>=550?"🏁 Finished":
+teamTotal>=275?"Lap 3":
+teamTotal>=140?"Lap 2":"Lap 1";
 }
 
-loadData();
+load();
 </script>
 
 </body>
 </html>
-
