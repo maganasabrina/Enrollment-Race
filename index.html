@@ -78,9 +78,7 @@ h1{color:#ef4444;font-size:40px;margin-bottom:12px}
   border:4px solid #f59e0b;
   font-size:20px;font-weight:bold
 }
-#mvp.active{
-  animation:glow 1.4s infinite;
-}
+#mvp.active{animation:glow 1.4s infinite}
 @keyframes glow{
   0%{box-shadow:0 0 10px #fde047}
   50%{box-shadow:0 0 30px #facc15}
@@ -129,6 +127,14 @@ h1{color:#ef4444;font-size:40px;margin-bottom:12px}
   <button onclick="setView('week',this)">This Week</button>
 </div>
 
+<div class="buttons" id="weekSelector" style="display:none">
+  <button onclick="setWeek(1,this)">Week 1</button>
+  <button onclick="setWeek(2,this)">Week 2</button>
+  <button onclick="setWeek(3,this)">Week 3</button>
+  <button onclick="setWeek(4,this)">Week 4</button>
+  <button onclick="setWeek(5,this)">Week 5</button>
+</div>
+
 <div id="topRow">
   <div id="mvp" class="card"></div>
   <div id="team"></div>
@@ -150,6 +156,7 @@ const YEARLY_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrR
 const WEEKLY_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=0&single=true&output=csv";
 
 let view="month",weeklyData=[];
+let selectedWeek=null;
 let lastMVP=null,celebrated={};
 
 const pct=(a,b)=>b?Math.min(100,Math.round(a/b*100)):0;
@@ -157,7 +164,16 @@ const fire=()=>confetti({particleCount:140,spread:90,origin:{y:.6}});
 
 function setView(v,btn){
   view=v;
+  selectedWeek=null;
   document.querySelectorAll(".buttons button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("weekSelector").style.display = v==="week"?"flex":"none";
+  loadData();
+}
+
+function setWeek(w,btn){
+  selectedWeek=w;
+  document.querySelectorAll("#weekSelector button").forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");
   loadData();
 }
@@ -167,10 +183,11 @@ Promise.all([
 fetch(YEARLY_CSV+"&t="+Date.now()).then(r=>r.text()),
 fetch(WEEKLY_CSV+"&t="+Date.now()).then(r=>r.text())
 ]).then(([y,w])=>{
+
 weeklyData=w.trim().split("\n").slice(1).map(r=>{
   const c=r.split(",");
   return{
-    date:new Date(c[0]),
+    date:new Date(c[0]+"T00:00:00"),
     name:(c[2]||"").trim(),
     value:Number(c[4])||0
   };
@@ -178,24 +195,26 @@ weeklyData=w.trim().split("\n").slice(1).map(r=>{
 
 const people=y.trim().split("\n").slice(1).map(r=>{
   const c=r.split(",");
-  return{
-    name:c[0],
-    goal:Number(c[1])||0,
-    ytd:Number(c[2])||0,
-    total:0
-  };
+  return{name:c[0],goal:+c[1],ytd:+c[2],total:0};
 });
 
 const now=new Date();
-const startOfWeek=new Date(now);
-startOfWeek.setDate(now.getDate()-now.getDay());
+const monday=new Date(now);
+const day=monday.getDay();
+monday.setDate(monday.getDate()+(day===0?-6:1-day));
+monday.setHours(0,0,0,0);
 
 people.forEach(p=>{
   if(view==="ytd"){p.total=p.ytd;return;}
   weeklyData.forEach(r=>{
     if(r.name!==p.name)return;
-    if(view==="week"&&r.date>=startOfWeek)p.total+=r.value;
     if(view==="month"&&r.date.getMonth()===now.getMonth())p.total+=r.value;
+    if(view==="week"){
+      const diff=Math.floor((r.date-monday)/(1000*60*60*24));
+      const wk=Math.floor(diff/7)+1;
+      if(selectedWeek===null&&diff>=0&&diff<7)p.total+=r.value;
+      if(selectedWeek===wk)p.total+=r.value;
+    }
   });
 });
 
@@ -212,7 +231,7 @@ const racers=people.filter(p=>!MANAGERS.includes(p.name));
 const managers=people.filter(p=>MANAGERS.includes(p.name));
 racers.sort((a,b)=>b.total-a.total);
 
-const teamTotal=racers.reduce((a,b)=>a+b.total,0);
+const teamTotal=people.reduce((a,b)=>a+b.total,0);
 const teamPct=pct(teamTotal,TEAM_GOAL);
 
 [25,50,75,100].forEach(m=>{
@@ -223,9 +242,7 @@ document.getElementById("team").innerHTML=`
 <div class="card team">
 <h3>🏁 Team Goal</h3>
 <div class="progress">
-  <div class="bar" style="width:${teamPct}%">
-    <span class="car">🏎️</span>
-  </div>
+  <div class="bar" style="width:${teamPct}%"><span class="car">🏎️</span></div>
 </div>
 <p>${teamTotal} / ${TEAM_GOAL} (${teamPct}%)</p>
 </div>`;
@@ -233,12 +250,9 @@ document.getElementById("team").innerHTML=`
 const mvp=racers.find(p=>p.total>0);
 const mvpEl=document.getElementById("mvp");
 mvpEl.classList.toggle("active",!!mvp);
-
 if(mvp&&lastMVP!==mvp.name){fire();lastMVP=mvp.name;}
 
-mvpEl.innerHTML=mvp?
-`🏆 MVP<br><strong>${mvp.name}</strong><br>${mvp.total}`:
-`🏆 MVP<br>Waiting…`;
+mvpEl.innerHTML=mvp?`🏆 MVP<br><strong>${mvp.name}</strong><br>${mvp.total}`:`🏆 MVP<br>Waiting…`;
 
 document.getElementById("podium").innerHTML=
 `<h3>🏁 Podium</h3>`+
@@ -252,9 +266,7 @@ dash.innerHTML+=`
 ${i===0&&p.total>0?`<div class="mvp-badge">${lastMVP===p.name?"DEFENDING MVP":"MVP"}</div>`:""}
 <h3>${p.name}</h3>
 <div class="progress">
-  <div class="bar" style="width:${pct(p.total,p.goal)}%">
-    <span class="car">🏎️</span>
-  </div>
+  <div class="bar" style="width:${pct(p.total,p.goal)}%"><span class="car">🏎️</span></div>
 </div>
 <p>${p.total} / ${p.goal}</p>
 </div>`;
@@ -265,9 +277,7 @@ mgr.innerHTML+=`
 <div class="card manager-card">
 <h3>${p.name}</h3>
 <div class="progress">
-  <div class="bar" style="width:${pct(p.total,p.goal)}%">
-    <span class="car">🏎️</span>
-  </div>
+  <div class="bar" style="width:${pct(p.total,p.goal)}%"><span class="car">🏎️</span></div>
 </div>
 <p>${p.total} / ${p.goal}</p>
 </div>`;
