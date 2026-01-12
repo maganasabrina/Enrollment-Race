@@ -63,7 +63,7 @@ h1{color:#ef4444;font-size:40px;margin-bottom:12px}
   position:absolute;
   right:-12px;
   top:50%;
-  transform:translateY(-50%);
+  transform:translateY(-50%) scaleX(-1);
   font-size:18px;
   pointer-events:none;
 }
@@ -167,7 +167,7 @@ function setView(v,btn){
   selectedWeek=null;
   document.querySelectorAll(".buttons button").forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");
-  document.getElementById("weekSelector").style.display = v==="week"?"flex":"none";
+  document.getElementById("weekSelector").style.display=v==="week"?"block":"none";
   loadData();
 }
 
@@ -187,8 +187,8 @@ fetch(WEEKLY_CSV+"&t="+Date.now()).then(r=>r.text())
 weeklyData=w.trim().split("\n").slice(1).map(r=>{
   const c=r.split(",");
   return{
-    date:new Date(c[0]+"T00:00:00"),
     name:(c[2]||"").trim(),
+    week:(c[3]||"").trim(),
     value:Number(c[4])||0
   };
 });
@@ -198,23 +198,12 @@ const people=y.trim().split("\n").slice(1).map(r=>{
   return{name:c[0],goal:+c[1],ytd:+c[2],total:0};
 });
 
-const now=new Date();
-const monday=new Date(now);
-const day=monday.getDay();
-monday.setDate(monday.getDate()+(day===0?-6:1-day));
-monday.setHours(0,0,0,0);
-
 people.forEach(p=>{
   if(view==="ytd"){p.total=p.ytd;return;}
   weeklyData.forEach(r=>{
     if(r.name!==p.name)return;
-    if(view==="month"&&r.date.getMonth()===now.getMonth())p.total+=r.value;
-    if(view==="week"){
-      const diff=Math.floor((r.date-monday)/(1000*60*60*24));
-      const wk=Math.floor(diff/7)+1;
-      if(selectedWeek===null&&diff>=0&&diff<7)p.total+=r.value;
-      if(selectedWeek===wk)p.total+=r.value;
-    }
+    if(view==="month")p.total+=r.value;
+    if(view==="week"&&r.week===`Week ${selectedWeek||1}`)p.total+=r.value;
   });
 });
 
@@ -241,22 +230,21 @@ const teamPct=pct(teamTotal,TEAM_GOAL);
 document.getElementById("team").innerHTML=`
 <div class="card team">
 <h3>🏁 Team Goal</h3>
-<div class="progress">
-  <div class="bar" style="width:${teamPct}%"><span class="car">🏎️</span></div>
-</div>
+<div class="progress"><div class="bar" style="width:${teamPct}%"><span class="car">🏎️</span></div></div>
 <p>${teamTotal} / ${TEAM_GOAL} (${teamPct}%)</p>
 </div>`;
 
-const mvp=racers.find(p=>p.total>0);
+const mvp=racers[0];
 const mvpEl=document.getElementById("mvp");
 mvpEl.classList.toggle("active",!!mvp);
+
 if(mvp&&lastMVP!==mvp.name){fire();lastMVP=mvp.name;}
 
 mvpEl.innerHTML=mvp?`🏆 MVP<br><strong>${mvp.name}</strong><br>${mvp.total}`:`🏆 MVP<br>Waiting…`;
 
 document.getElementById("podium").innerHTML=
 `<h3>🏁 Podium</h3>`+
-racers.filter(p=>p.total>0).slice(0,3).map((p,i)=>
+racers.slice(0,3).map((p,i)=>
 `<div class="podium-row">${["🥇","🥈","🥉"][i]} ${p.name}<span>${p.total}</span></div>`
 ).join("");
 
@@ -265,9 +253,7 @@ dash.innerHTML+=`
 <div class="card ${i===0&&p.total>0?"leader":""}">
 ${i===0&&p.total>0?`<div class="mvp-badge">${lastMVP===p.name?"DEFENDING MVP":"MVP"}</div>`:""}
 <h3>${p.name}</h3>
-<div class="progress">
-  <div class="bar" style="width:${pct(p.total,p.goal)}%"><span class="car">🏎️</span></div>
-</div>
+<div class="progress"><div class="bar" style="width:${pct(p.total,p.goal)}%"><span class="car">🏎️</span></div></div>
 <p>${p.total} / ${p.goal}</p>
 </div>`;
 });
@@ -276,20 +262,20 @@ managers.forEach(p=>{
 mgr.innerHTML+=`
 <div class="card manager-card">
 <h3>${p.name}</h3>
-<div class="progress">
-  <div class="bar" style="width:${pct(p.total,p.goal)}%"><span class="car">🏎️</span></div>
-</div>
+<div class="progress"><div class="bar" style="width:${pct(p.total,p.goal)}%"><span class="car">🏎️</span></div></div>
 <p>${p.total} / ${p.goal}</p>
 </div>`;
 });
 
 document.getElementById("lapCounter").innerText=
-teamPct>=100?"🏁 Finished":teamPct>=75?"Final Lap":
-teamPct>=50?"Lap 3":teamPct>=25?"Lap 2":"Lap 1";
+teamPct>=100?"🏁 Finished":teamPct>=75?"Final Lap":teamPct>=50?"Lap 3":teamPct>=25?"Lap 2":"Lap 1";
 }
 
 loadData();
 </script>
+
+</body>
+</html>
 
 </body>
 </html>
