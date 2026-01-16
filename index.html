@@ -24,11 +24,12 @@ body::before{
   z-index:999;
 }
 h1{color:#ef4444;font-size:40px;margin-bottom:12px}
-.buttons button{
+.buttons button, .buttons select{
   margin:6px;padding:10px 18px;border-radius:16px;border:none;
   font-weight:bold;cursor:pointer
 }
 .buttons button.active{background:#22c55e;color:white}
+.buttons select{background:#22c55e;color:white}
 
 #topRow{
   display:grid;
@@ -128,18 +129,13 @@ h1{color:#ef4444;font-size:40px;margin-bottom:12px}
 </div>
 
 <div class="buttons" id="monthSelector">
-  <button onclick="setMonth('January',this)">January</button>
-  <button onclick="setMonth('February',this)">February</button>
-  <button onclick="setMonth('March',this)">March</button>
-  <button onclick="setMonth('April',this)">April</button>
-  <button onclick="setMonth('May',this)">May</button>
-  <button onclick="setMonth('June',this)">June</button>
-  <button onclick="setMonth('July',this)">July</button>
-  <button onclick="setMonth('August',this)">August</button>
-  <button onclick="setMonth('September',this)">September</button>
-  <button onclick="setMonth('October',this)">October</button>
-  <button onclick="setMonth('November',this)">November</button>
-  <button onclick="setMonth('December',this)">December</button>
+  <select onchange="setMonth(this.value)">
+    <option value="">Select Month</option>
+    <option>January</option><option>February</option><option>March</option>
+    <option>April</option><option>May</option><option>June</option>
+    <option>July</option><option>August</option><option>September</option>
+    <option>October</option><option>November</option><option>December</option>
+  </select>
 </div>
 
 <div class="buttons" id="weekSelector" style="display:none">
@@ -171,11 +167,9 @@ const YEARLY_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrR
 const WEEKLY_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=0&single=true&output=csv";
 
 let view="month",weeklyData=[];
-let selectedWeek=null,selectedMonth="January";
-let lastMVP=null,celebrated={};
+let selectedWeek=null,selectedMonth=null;
 
 const pct=(a,b)=>b?Math.min(100,Math.round(a/b*100)):0;
-const fire=()=>confetti({particleCount:140,spread:90,origin:{y:.6}});
 
 function setView(v,btn){
   view=v;
@@ -187,19 +181,8 @@ function setView(v,btn){
   loadData();
 }
 
-function setWeek(w,btn){
-  selectedWeek=w;
-  document.querySelectorAll("#weekSelector button").forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active");
-  loadData();
-}
-
-function setMonth(m,btn){
-  selectedMonth=m;
-  document.querySelectorAll("#monthSelector button").forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active");
-  loadData();
-}
+function setWeek(w){ selectedWeek=w; loadData(); }
+function setMonth(m){ selectedMonth=m; loadData(); }
 
 function loadData(){
 Promise.all([
@@ -209,7 +192,13 @@ fetch(WEEKLY_CSV+"&t="+Date.now()).then(r=>r.text())
 
 weeklyData=w.trim().split("\n").slice(1).map(r=>{
   const c=r.split(",");
-  return{name:c[2]?.trim(),period:c[3]?.trim(),value:Number(c[4])||0};
+  const d=new Date(c[0]); // ← date column
+  return{
+    name:(c[2]||"").trim(),
+    week:(c[3]||"").trim(),
+    month:isNaN(d)?null:d.toLocaleString('default',{month:'long'}),
+    value:Number(c[4])||0
+  };
 });
 
 const people=y.trim().split("\n").slice(1).map(r=>{
@@ -221,8 +210,8 @@ people.forEach(p=>{
   if(view==="ytd"){p.total=p.ytd;return;}
   weeklyData.forEach(r=>{
     if(r.name!==p.name)return;
-    if(view==="month"&&r.period===selectedMonth)p.total+=r.value;
-    if(view==="week"&&r.period===`Week ${selectedWeek||1}`)p.total+=r.value;
+    if(view==="month"&&r.month===selectedMonth)p.total+=r.value;
+    if(view==="week"&&r.week===`Week ${selectedWeek||1}`)p.total+=r.value;
   });
 });
 
@@ -236,7 +225,6 @@ const mgr=document.getElementById("managers");
 dash.innerHTML="";mgr.innerHTML="";
 
 const racers=people.filter(p=>!MANAGERS.includes(p.name));
-const managers=people.filter(p=>MANAGERS.includes(p.name));
 racers.sort((a,b)=>b.total-a.total);
 
 const teamTotal=people.reduce((a,b)=>a+b.total,0);
@@ -249,25 +237,14 @@ document.getElementById("team").innerHTML=`
 <p>${teamTotal} / ${TEAM_GOAL} (${teamPct}%)</p>
 </div>`;
 
-const mvp=racers[0];
-document.getElementById("mvp").innerHTML=mvp?`🏆 MVP<br><strong>${mvp.name}</strong><br>${mvp.total}`:`🏆 MVP<br>Waiting…`;
+document.getElementById("mvp").innerHTML=racers[0]?`🏆 MVP<br><strong>${racers[0].name}</strong><br>${racers[0].total}`:`🏆 MVP<br>Waiting…`;
 
-document.getElementById("podium").innerHTML=
-`<h3>🏁 Podium</h3>`+
+document.getElementById("podium").innerHTML=`<h3>🏁 Podium</h3>`+
 racers.slice(0,3).map((p,i)=>`<div class="podium-row">${["🥇","🥈","🥉"][i]} ${p.name}<span>${p.total}</span></div>`).join("");
 
 racers.forEach(p=>{
 dash.innerHTML+=`
 <div class="card">
-<h3>${p.name}</h3>
-<div class="progress"><div class="bar" style="width:${pct(p.total,p.goal)}%"><span class="car">🏎️</span></div></div>
-<p>${p.total} / ${p.goal}</p>
-</div>`;
-});
-
-managers.forEach(p=>{
-mgr.innerHTML+=`
-<div class="card manager-card">
 <h3>${p.name}</h3>
 <div class="progress"><div class="bar" style="width:${pct(p.total,p.goal)}%"><span class="car">🏎️</span></div></div>
 <p>${p.total} / ${p.goal}</p>
@@ -280,4 +257,3 @@ loadData();
 
 </body>
 </html>
-
