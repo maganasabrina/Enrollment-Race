@@ -149,11 +149,16 @@ h1{color:#ef4444;font-size:40px;margin-bottom:12px}
 <div id="lapCounter"></div>
 
 <script>
-const TEAM_GOAL=550;
-const MANAGERS=["Sabrina","Edward","Teresita"];
+const TEAM_GOAL = 550;
+const MANAGERS = ["Sabrina","Edward","Teresita"];
 
-const YEARLY_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=1984389436&single=true&output=csv";
-const WEEKLY_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=0&single=true&output=csv";
+const CURRENT_MONTH = new Date().toLocaleString("default", {
+  month: "long",
+  year: "numeric"
+});
+
+const YEARLY_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=1984389436&single=true&output=csv";
+const WEEKLY_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=0&single=true&output=csv";
 
 let view="month",weeklyData=[];
 let selectedWeek=null;
@@ -189,7 +194,8 @@ weeklyData=w.trim().split("\n").slice(1).map(r=>{
   return{
     name:(c[2]||"").trim(),
     week:(c[3]||"").trim(),
-    value:Number(c[4])||0
+    value:Number(c[4])||0,
+    month:(c[5]||"").trim()
   };
 });
 
@@ -202,8 +208,8 @@ people.forEach(p=>{
   if(view==="ytd"){p.total=p.ytd;return;}
   weeklyData.forEach(r=>{
     if(r.name!==p.name)return;
-    if(view==="month")p.total+=r.value;
-    if(view==="week"&&r.week===`Week ${selectedWeek||1}`)p.total+=r.value;
+    if(view==="month" && r.month===CURRENT_MONTH)p.total+=r.value;
+    if(view==="week" && r.week===`Week ${selectedWeek||1}`)p.total+=r.value;
   });
 });
 
@@ -254,7 +260,10 @@ dash.innerHTML+=`
 ${i===0&&p.total>0?`<div class="mvp-badge">${lastMVP===p.name?"DEFENDING MVP":"MVP"}</div>`:""}
 <h3>${p.name}</h3>
 <div class="progress"><div class="bar" style="width:${pct(p.total,p.goal)}%"><span class="car">🏎️</span></div></div>
-<p>${p.total} / ${p.goal}</p>
+<p>
+${p.total} / ${p.goal}<br>
+<strong>${Math.max(0,p.goal-p.total)}</strong> to go
+</p>
 </div>`;
 });
 
@@ -263,7 +272,10 @@ mgr.innerHTML+=`
 <div class="card manager-card">
 <h3>${p.name}</h3>
 <div class="progress"><div class="bar" style="width:${pct(p.total,p.goal)}%"><span class="car">🏎️</span></div></div>
-<p>${p.total} / ${p.goal}</p>
+<p>
+${p.total} / ${p.goal}<br>
+<strong>${Math.max(0,p.goal-p.total)}</strong> to go
+</p>
 </div>`;
 });
 
@@ -276,3 +288,4 @@ loadData();
 
 </body>
 </html>
+
