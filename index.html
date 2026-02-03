@@ -8,12 +8,16 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <style>
+/* =====================================================
+   🎨 THEME CSS VARIABLES (auto-updated by JS)
+   ===================================================== */
 :root{
   --bg1:#86efac;
   --bg2:#a7f3d0;
   --primary:#ef4444;
   --accent:#22c55e;
 }
+
 html,body{overflow-x:hidden}
 body{
   margin:0;
@@ -22,6 +26,10 @@ body{
   background:repeating-linear-gradient(90deg,var(--bg1) 0 60px,var(--bg2) 60px 120px);
   text-align:center;
 }
+
+/* =====================================================
+   🏁 CHECKERED FINISH STRIPE
+   ===================================================== */
 body::before{
   content:"";
   position:fixed;
@@ -29,6 +37,41 @@ body::before{
   background:repeating-linear-gradient(90deg,#000 0 20px,#fff 20px 40px);
   z-index:999;
 }
+
+/* =====================================================
+   🌧️ FALLING BACKDROP LAYER
+   ===================================================== */
+#falling-layer{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  overflow:hidden;
+}
+
+.falling{
+  position:absolute;
+  top:-40px;
+  opacity:.85;
+  animation: fall linear forwards;
+}
+
+@keyframes fall{
+  to{
+    transform: translateY(110vh) rotate(360deg);
+    opacity:1;
+  }
+}
+
+/* Keep content above falling layer */
+body > *:not(#falling-layer){
+  position:relative;
+  z-index:2;
+}
+
+/* =====================================================
+   🧩 UI STYLES (unchanged)
+   ===================================================== */
 h1{color:var(--primary);font-size:40px;margin-bottom:12px}
 
 .buttons button{
@@ -64,7 +107,6 @@ h1{color:var(--primary);font-size:40px;margin-bottom:12px}
   background:linear-gradient(90deg,#facc15,var(--accent));
   transition:width .6s ease;
   border-radius:14px;
-  position:relative;
 }
 .car{
   position:absolute;
@@ -125,6 +167,9 @@ h1{color:var(--primary);font-size:40px;margin-bottom:12px}
 
 <body>
 
+<!-- 🌧️ Falling theme elements render here -->
+<div id="falling-layer"></div>
+
 <h1>🏁 Enrollment Race to 550</h1>
 
 <div class="buttons">
@@ -153,43 +198,42 @@ h1{color:var(--primary);font-size:40px;margin-bottom:12px}
 <div id="lapCounter"></div>
 
 <script>
+/* =====================================================
+   🔢 CONSTANTS
+   ===================================================== */
 const TEAM_GOAL=550;
 const MANAGERS=["Sabrina","Edward","Teresita"];
-
-const YEARLY_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=1984389436&single=true&output=csv";
-const WEEKLY_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=0&single=true&output=csv";
-
-const CURRENT_MONTH=new Date().toLocaleString("default",{month:"long"});
 const CURRENT_DATE=new Date();
+const CURRENT_MONTH=new Date().toLocaleString("default",{month:"long"});
 
-/* ===============================
-   🎉 HOLIDAY THEMES
-   Add holidays and their colors, emoji, and confetti
-   =============================== */
-const HOLIDAYS=[
-  {name:"New Year",month:0,day:1,theme:{bg1:"#93c5fd",bg2:"#bfdbfe",primary:"#1e3a8a",accent:"#3b82f6",emoji:"🎉",confetti:true}},
-  {name:"Valentine",theme:{bg1:"#fecdd3",bg2:"#ffe4e6",primary:"#e11d48",accent:"#fb7185",emoji:"💖",confetti:true}},
-  {name:"St Patrick",month:2,day:17,theme:{bg1:"#d1fae5",bg2:"#a7f3d0",primary:"#166534",accent:"#22c55e",emoji:"🍀",confetti:true}},
-  {name:"Independence",month:6,day:4,theme:{bg1:"#fee2e2",bg2:"#fef2f2",primary:"#b91c1c",accent:"#2563eb",emoji:"🎆",confetti:true}},
-  {name:"Halloween",month:9,day:31,theme:{bg1:"#fcd34d",bg2:"#fbbf24",primary:"#b45309",accent:"#dc2626",emoji:"🎃",confetti:false}},
-  {name:"Christmas",month:11,day:25,theme:{bg1:"#fee2e2",bg2:"#fef2f2",primary:"#b91c1c",accent:"#16a34a",emoji:"🎄",confetti:true}}
-];
+/* =====================================================
+   🎨 MONTHLY THEMES (EDIT HERE FOR FUTURE THEMES)
+   ===================================================== */
+const MONTH_THEMES={
+  1:{bg1:"#fecdd3",bg2:"#ffe4e6",primary:"#e11d48",accent:"#fb7185",emoji:"💖",confetti:true},
+  2:{bg1:"#d1fae5",bg2:"#a7f3d0",primary:"#166534",accent:"#22c55e",emoji:"🍀",confetti:true},
+  9:{bg1:"#fcd34d",bg2:"#fbbf24",primary:"#b45309",accent:"#dc2626",emoji:"🎃",confetti:false},
+  11:{bg1:"#fee2e2",bg2:"#fef2f2",primary:"#b91c1c",accent:"#16a34a",emoji:"🎄",confetti:true}
+};
 
-/* ===============================
-   🔹 Apply holiday theme if today matches
-   Otherwise, use CURRENT_MONTH default colors
-   =============================== */
+/* =====================================================
+   🌧️ FALLING BACKDROP ITEMS (EDIT HERE)
+   ===================================================== */
+const FALLING_THEMES={
+  1:["💖","💕","🌹"],
+  2:["🍀","🌈","🪙"],
+  9:["🎃","🍬","🦇"],
+  11:["❄️","⭐","🎄"]
+};
+
+/* =====================================================
+   🎨 APPLY THEME
+   ===================================================== */
 function applyTheme(){
-  let theme=null;
-  HOLIDAYS.forEach(h=>{
-    if(CURRENT_DATE.getMonth()===h.month && CURRENT_DATE.getDate()===h.day){
-      theme=h.theme;
-    }
-  });
-  if(!theme){
-    // fallback default for the month
-    theme={bg1:"#86efac",bg2:"#a7f3d0",primary:"#ef4444",accent:"#22c55e",emoji:"🏁",confetti:false};
-  }
+  const month=CURRENT_DATE.getMonth();
+  const theme=MONTH_THEMES[month]||{
+    bg1:"#86efac",bg2:"#a7f3d0",primary:"#ef4444",accent:"#22c55e",emoji:"🏁",confetti:false
+  };
 
   document.documentElement.style.setProperty("--bg1",theme.bg1);
   document.documentElement.style.setProperty("--bg2",theme.bg2);
@@ -200,128 +244,42 @@ function applyTheme(){
   if(theme.confetti){
     setInterval(()=>confetti({
       particleCount:5,
-      shapes:["heart","circle","square"],
-      colors:[theme.primary,theme.accent,theme.bg1],
+      colors:[theme.primary,theme.accent],
       origin:{x:Math.random(),y:0}
     }),4000);
   }
 }
 
-/* ===============================
-   🔹 Data handling (same as your current code)
-   =============================== */
-let view="month",weeklyData=[],selectedWeek=null;
-let lastMVP=null,celebrated={};
-const pct=(a,b)=>b?Math.min(100,Math.round(a/b*100)):0;
-const fire=()=>confetti({particleCount:140,spread:90,origin:{y:.6}});
+/* =====================================================
+   🌧️ START FALLING BACKDROP
+   ===================================================== */
+function startFallingTheme(){
+  const items=FALLING_THEMES[CURRENT_DATE.getMonth()];
+  if(!items) return;
 
-function setView(v,btn){
-  view=v;selectedWeek=null;
-  document.querySelectorAll(".buttons button").forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active");
-  document.getElementById("weekSelector").style.display=v==="week"?"block":"none";
-  loadData();
+  const layer=document.getElementById("falling-layer");
+
+  setInterval(()=>{
+    const el=document.createElement("div");
+    el.className="falling";
+    el.innerText=items[Math.floor(Math.random()*items.length)];
+    el.style.left=Math.random()*100+"vw";
+    el.style.fontSize=16+Math.random()*20+"px";
+    el.style.animationDuration=6+Math.random()*6+"s";
+    layer.appendChild(el);
+    setTimeout(()=>el.remove(),12000);
+  },500);
 }
 
-function setWeek(w,btn){
-  selectedWeek=w;
-  document.querySelectorAll("#weekSelector button").forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active");
-  loadData();
-}
-
-function loadData(){
-  Promise.all([
-    fetch(YEARLY_CSV+"&t="+Date.now()).then(r=>r.text()),
-    fetch(WEEKLY_CSV+"&t="+Date.now()).then(r=>r.text())
-  ]).then(([y,w])=>{
-    weeklyData=w.trim().split("\n").slice(1).map(r=>{
-      const c=r.split(",");
-      return{name:(c[2]||"").trim(),week:(c[3]||"").trim(),value:Number(c[4])||0,month:(c[5]||"").trim()};
-    });
-
-    const people=y.trim().split("\n").slice(1).map(r=>{
-      const c=r.split(",");
-      return{name:c[0],goal:+c[1],ytd:+c[2],total:0};
-    });
-
-    people.forEach(p=>{
-      if(view==="ytd"){p.total=p.ytd;return;}
-      weeklyData.forEach(r=>{
-        if(r.name!==p.name)return;
-        if(view==="month" && r.month===CURRENT_MONTH)p.total+=r.value;
-        if(view==="week" && r.week===`Week ${selectedWeek||1}`)p.total+=r.value;
-      });
-    });
-
-    render(people);
-  });
-}
-
-function render(people){
-  const dash=document.getElementById("dashboard");
-  const mgr=document.getElementById("managers");
-  dash.innerHTML="";mgr.innerHTML="";
-
-  const racers=people.filter(p=>!MANAGERS.includes(p.name));
-  const managers=people.filter(p=>MANAGERS.includes(p.name));
-  racers.sort((a,b)=>b.total-a.total);
-
-  const teamTotal=people.reduce((a,b)=>a+b.total,0);
-  const teamPct=pct(teamTotal,TEAM_GOAL);
-
-  [25,50,75,100].forEach(m=>{
-    if(teamPct>=m&&!celebrated[m]){fire();celebrated[m]=true;}
-  });
-
-  document.getElementById("team").innerHTML=`
-<div class="card team">
-<h3>🏁 Team Goal</h3>
-<div class="progress"><div class="bar" style="width:${teamPct}%"><span class="car">🏎️</span></div></div>
-<p>${teamTotal} / ${TEAM_GOAL} (${teamPct}%)</p>
-</div>`;
-
-  const mvp=racers[0];
-  const mvpEl=document.getElementById("mvp");
-  mvpEl.classList.toggle("active",!!mvp);
-  if(mvp&&lastMVP!==mvp.name){fire();lastMVP=mvp.name;}
-  mvpEl.innerHTML=mvp?`🏆 MVP<br><strong>${mvp.name}</strong><br>${mvp.total}`:`🏆 MVP<br>Waiting…`;
-
-  document.getElementById("podium").innerHTML=
-    `<h3>🏁 Podium</h3>`+
-    racers.slice(0,3).map((p,i)=>`<div class="podium-row">${["🥇","🥈","🥉"][i]} ${p.name}<span>${p.total}</span></div>`).join("");
-
-  racers.forEach((p,i)=>{
-    dash.innerHTML+=`
-<div class="card ${i===0&&p.total>0?"leader":""}">
-${i===0&&p.total>0?`<div class="mvp-badge">${lastMVP===p.name?"DEFENDING MVP":"MVP"}</div>`:""}
-<h3>${p.name}</h3>
-<div class="progress"><div class="bar" style="width:${pct(p.total,p.goal)}%"><span class="car">🏎️</span></div></div>
-<p>${p.total} / ${p.goal}</p>
-</div>`;
-  });
-
-  managers.forEach(p=>{
-    mgr.innerHTML+=`
-<div class="card manager-card">
-<h3>${p.name}</h3>
-<div class="progress"><div class="bar" style="width:${pct(p.total,p.goal)}%"><span class="car">🏎️</span></div></div>
-<p>${p.total} / ${p.goal}</p>
-</div>`;
-  });
-
-  document.getElementById("lapCounter").innerText=
-    teamPct>=100?"🏁 Finished":teamPct>=75?"Final Lap":teamPct>=50?"Lap 3":teamPct>=25?"Lap 2":"Lap 1";
-}
-
-/* ===============================
-   🔹 Initial Load
-   Apply theme first
-   =============================== */
+/* =====================================================
+   🚀 INIT
+   ===================================================== */
 applyTheme();
+startFallingTheme();
 loadData();
 </script>
 
 </body>
 </html>
+
 
