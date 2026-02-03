@@ -5,16 +5,25 @@
 <title>Enrollment Race to 550</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
+<!-- 🎉 Confetti Library for Month Themes -->
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <style>
+/* =========================
+   🌈 Color & Theme Variables
+   Change these to update the look
+   ========================= */
 :root{
-  --bg1:#fecdd3;
-  --bg2:#ffe4e6;
-  --primary:#e11d48;
-  --accent:#fb7185;
+  --bg1:#fecdd3;    /* Background stripe 1 */
+  --bg2:#ffe4e6;    /* Background stripe 2 */
+  --primary:#e11d48; /* Main title color */
+  --accent:#fb7185;  /* Buttons & highlight */
 }
 
+/* =========================
+   🖋 Global Body Styles
+   Padding, font, and background
+   ========================= */
 body{
   margin:0;
   padding:60px 16px 80px;
@@ -23,6 +32,10 @@ body{
   text-align:center;
 }
 
+/* =========================
+   ⬛ Top Stripe
+   Small fixed header at the top
+   ========================= */
 body::before{
   content:"";
   position:fixed;
@@ -30,14 +43,24 @@ body::before{
   background:repeating-linear-gradient(90deg,#000 0 20px,#fff 20px 40px);
 }
 
+/* =========================
+   🏷 Main Title
+   Change font-size or color here
+   ========================= */
 h1{color:var(--primary);font-size:40px;margin-bottom:12px}
 
+/* =========================
+   🎛 Buttons (YTD / Month / Week)
+   ========================= */
 .buttons button{
   margin:6px;padding:10px 18px;border-radius:16px;border:none;
   font-weight:bold;cursor:pointer
 }
 .buttons button.active{background:var(--accent);color:white}
 
+/* =========================
+   🏗 Layout for Top Row (MVP / Team / Podium)
+   ========================= */
 #topRow{
   display:grid;
   grid-template-columns:260px 1fr 260px;
@@ -47,12 +70,19 @@ h1{color:var(--primary);font-size:40px;margin-bottom:12px}
   align-items:center;
 }
 
+/* =========================
+   📦 Card Styles
+   Used for MVP, dashboard, podium, managers
+   ========================= */
 .card{
   background:#fff;padding:20px;border-radius:22px;
   box-shadow:0 10px 26px rgba(0,0,0,.15);
   position:relative
 }
 
+/* =========================
+   📊 Progress Bars
+   ========================= */
 .progress{
   background:#e5e7eb;
   height:20px;
@@ -65,20 +95,32 @@ h1{color:var(--primary);font-size:40px;margin-bottom:12px}
   border-radius:14px;
 }
 
+/* =========================
+   📊 Dashboard Grid
+   ========================= */
 #dashboard{
   display:grid;grid-template-columns:repeat(4,1fr);
   gap:16px;max-width:1200px;margin:0 auto 30px
 }
 
+/* =========================
+   🏆 MVP Badge
+   ========================= */
 #mvp{border:4px solid #f59e0b;font-weight:bold}
 .mvp-badge{
   position:absolute;top:-12px;right:-12px;
   background:#facc15;padding:6px 10px;border-radius:999px
 }
 
+/* =========================
+   🥇 Podium Styles
+   ========================= */
 #podium{border:4px solid silver}
 .podium-row{display:flex;justify-content:space-between;font-weight:bold}
 
+/* =========================
+   👔 Managers Section
+   ========================= */
 #managersHeader{font-size:22px;font-weight:bold;color:#1d4ed8;margin-bottom:14px}
 #managers{
   display:grid;grid-template-columns:repeat(3,1fr);
@@ -89,33 +131,63 @@ h1{color:var(--primary);font-size:40px;margin-bottom:12px}
 
 <body>
 
+<!-- =========================
+     🏷 Page Title (Dynamic Month Theme)
+     ========================= -->
 <h1>💖 Enrollment Race to 550 💖</h1>
 
+<!-- =========================
+     🎛 Filter Buttons
+     ========================= -->
 <div class="buttons">
   <button onclick="setView('ytd',this)">Year to Date</button>
   <button class="active" onclick="setView('month',this)">This Month</button>
   <button onclick="setView('week',this)">This Week</button>
 </div>
 
+<!-- =========================
+     🏗 Top Row (MVP / Team Placeholder / Podium)
+     ========================= -->
 <div id="topRow">
   <div id="mvp" class="card"></div>
   <div id="team"></div>
   <div id="podium" class="card"></div>
 </div>
 
+<!-- =========================
+     📊 Dashboard (Individual Progress Cards)
+     ========================= -->
 <div id="dashboard"></div>
+
+<!-- =========================
+     👔 Managers Section
+     ========================= -->
 <div id="managersHeader">⭐ Managers</div>
 <div id="managers"></div>
 
 <script>
-/* 🔴 PASTE YOUR GOOGLE SHEET CSV LINK HERE */
+/* =========================
+   🔗 CSV Links
+   Replace these with your own Google Sheet CSV links
+   ========================= */
 const YEARLY_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=1984389436&single=true&output=csv";
 const WEEKLY_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=0&single=true&output=csv";
 
+/* =========================
+   👔 Managers List
+   Add or remove names here
+   ========================= */
 const MANAGERS = ["Sabrina","Edward","Teresita"];
-let VIEW="month";
 
-/* 🎉 MONTH THEMES */
+/* =========================
+   🌟 Global Variables
+   ========================= */
+let VIEW="month"; // default view
+let DATA = [];    // loaded CSV data
+
+/* =========================
+   🎉 Month Themes & Confetti
+   ========================= */
 const MONTH=new Date().toLocaleString("default",{month:"long"});
 const THEMES={
   February:{emoji:"💖",mode:"hearts"},
@@ -143,60 +215,85 @@ if(THEMES[MONTH]){
   }
 }
 
+/* =========================
+   🔄 Switch Views Function
+   Handles button clicks and reloads data
+   ========================= */
 function setView(v,btn){
   VIEW=v;
-  document.querySelectorAll(".buttons button")
-    .forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll(".buttons button").forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");
-  loadData();
+  loadCSV();
 }
 
-fetch(SHEET_URL).then(r=>r.text()).then(csv=>{
-  const rows=csv.split("\n").slice(1).map(r=>r.split(","));
-  window.DATA=rows.map(r=>({
-    date:new Date(r[0]),
-    name:r[2],
-    week:r[3],
-    count:+r[4]
-  }));
-  loadData();
-});
+/* =========================
+   📥 Load CSV Data
+   Automatically fetches correct sheet based on VIEW
+   ========================= */
+function loadCSV(){
+  let SHEET_URL = VIEW === "ytd" ? YEARLY_CSV : WEEKLY_CSV;
 
+  fetch(SHEET_URL)
+    .then(r => r.text())
+    .then(csv => {
+      const rows = csv.split("\n").slice(1).map(r => r.split(","));
+      DATA = rows.map(r => ({
+        date: new Date(r[0]),
+        name: r[2],
+        week: r[3],
+        count: +r[4]
+      }));
+      loadData();
+    });
+}
+
+/* =========================
+   📊 Render Data Function
+   Updates MVP, Podium, Dashboard, and Managers
+   ========================= */
 function loadData(){
-  const now=new Date();
-  let filtered=DATA.filter(d=>{
-    if(VIEW==="month") return d.date.getMonth()===now.getMonth();
-    if(VIEW==="week") return d.date>=new Date(now-7*86400000);
+  const now = new Date();
+  let filtered = DATA.filter(d => {
+    if(VIEW === "month") return d.date.getMonth() === now.getMonth();
+    if(VIEW === "week") return d.date >= new Date(now.setDate(now.getDate()-7));
     return true;
   });
 
-  const totals={};
-  filtered.forEach(d=>totals[d.name]=(totals[d.name]||0)+d.count);
+  const totals = {};
+  filtered.forEach(d => totals[d.name] = (totals[d.name] || 0) + d.count);
 
-  const sorted=Object.entries(totals).sort((a,b)=>b[1]-a[1]);
+  const sorted = Object.entries(totals).sort((a,b)=>b[1]-a[1]);
 
-  document.getElementById("mvp").innerHTML=
+  // MVP Card
+  document.getElementById("mvp").innerHTML =
     `<div class="mvp-badge">MVP</div>${sorted[0]?.[0]||""}<br>${sorted[0]?.[1]||0}`;
 
-  document.getElementById("podium").innerHTML=
+  // Podium (Top 3)
+  document.getElementById("podium").innerHTML =
     sorted.slice(0,3).map((p,i)=>
       `<div class="podium-row">${i+1}. ${p[0]}<span>${p[1]}</span></div>`
     ).join("");
 
-  document.getElementById("dashboard").innerHTML=
+  // Dashboard (All users)
+  document.getElementById("dashboard").innerHTML =
     sorted.map(p=>`
       <div class="card">
         <strong>${p[0]}</strong>
-        <div class="progress"><div class="bar" style="width:${p[1]/5*100}%"></div></div>
+        <div class="progress"><div class="bar" style="width:${(p[1]/550*100).toFixed(1)}%"></div></div>
         ${p[1]}
       </div>`).join("");
 
-  document.getElementById("managers").innerHTML=
+  // Managers Section
+  document.getElementById("managers").innerHTML =
     sorted.filter(p=>MANAGERS.includes(p[0]))
       .map(p=>`<div class="card">${p[0]}<br>${p[1]}</div>`).join("");
 }
+
+// =========================
+// 🔄 Initial Load
+// =========================
+loadCSV();
 </script>
 
 </body>
 </html>
-
