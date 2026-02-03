@@ -265,7 +265,126 @@ function startFallingTheme(){
    ===================================================== */
 // 👈 Your original loadData(), setView(), setWeek(), render()
 // KEEP THESE EXACTLY AS YOU HAD THEM
+/* =====================================================
+   📊 DATA + RENDER (RESTORED)
+   ===================================================== */
 
+let view="month",weeklyData=[],selectedWeek=null;
+let lastMVP=null,celebrated={};
+const pct=(a,b)=>b?Math.min(100,Math.round(a/b*100)):0;
+const fire=()=>confetti({particleCount:140,spread:90,origin:{y:.6}});
+
+function setView(v,btn){
+  view=v;selectedWeek=null;
+  document.querySelectorAll(".buttons button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("weekSelector").style.display=v==="week"?"block":"none";
+  loadData();
+}
+
+function setWeek(w,btn){
+  selectedWeek=w;
+  document.querySelectorAll("#weekSelector button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  loadData();
+}
+
+function loadData(){
+  Promise.all([
+    fetch(YEARLY_CSV+"&t="+Date.now()).then(r=>r.text()),
+    fetch(WEEKLY_CSV+"&t="+Date.now()).then(r=>r.text())
+  ]).then(([y,w])=>{
+    weeklyData=w.trim().split("\n").slice(1).map(r=>{
+      const c=r.split(",");
+      return{
+        name:(c[2]||"").trim(),
+        week:(c[3]||"").trim(),
+        value:Number(c[4])||0,
+        month:(c[5]||"").trim()
+      };
+    });
+
+    const people=y.trim().split("\n").slice(1).map(r=>{
+      const c=r.split(",");
+      return{name:c[0],goal:+c[1],ytd:+c[2],total:0};
+    });
+
+    people.forEach(p=>{
+      if(view==="ytd"){p.total=p.ytd;return;}
+      weeklyData.forEach(r=>{
+        if(r.name!==p.name)return;
+        if(view==="month" && r.month===CURRENT_MONTH)p.total+=r.value;
+        if(view==="week" && r.week===`Week ${selectedWeek||1}`)p.total+=r.value;
+      });
+    });
+
+    render(people);
+  });
+}
+
+function render(people){
+  const dash=document.getElementById("dashboard");
+  const mgr=document.getElementById("managers");
+  dash.innerHTML="";mgr.innerHTML="";
+
+  const racers=people.filter(p=>!MANAGERS.includes(p.name));
+  const managers=people.filter(p=>MANAGERS.includes(p.name));
+  racers.sort((a,b)=>b.total-a.total);
+
+  const teamTotal=people.reduce((a,b)=>a+b.total,0);
+  const teamPct=pct(teamTotal,TEAM_GOAL);
+
+  [25,50,75,100].forEach(m=>{
+    if(teamPct>=m&&!celebrated[m]){fire();celebrated[m]=true;}
+  });
+
+  document.getElementById("team").innerHTML=`
+<div class="card team">
+<h3>🏁 Team Goal</h3>
+<div class="progress"><div class="bar" style="width:${teamPct}%"><span class="car">🏎️</span></div></div>
+<p>${teamTotal} / ${TEAM_GOAL} (${teamPct}%)</p>
+</div>`;
+
+  const mvp=racers[0];
+  const mvpEl=document.getElementById("mvp");
+  mvpEl.classList.toggle("active",!!mvp);
+  if(mvp&&lastMVP!==mvp.name){fire();lastMVP=mvp.name;}
+  mvpEl.innerHTML=mvp
+    ?`🏆 MVP<br><strong>${mvp.name}</strong><br>${mvp.total}`
+    :`🏆 MVP<br>Waiting…`;
+
+  document.getElementById("podium").innerHTML=
+    `<h3>🏁 Podium</h3>`+
+    racers.slice(0,3).map((p,i)=>
+      `<div class="podium-row">${["🥇","🥈","🥉"][i]} ${p.name}<span>${p.total}</span></div>`
+    ).join("");
+
+  racers.forEach((p,i)=>{
+    dash.innerHTML+=`
+<div class="card ${i===0&&p.total>0?"leader":""}">
+${i===0&&p.total>0?`<div class="mvp-badge">${lastMVP===p.name?"DEFENDING MVP":"MVP"}</div>`:""}
+<h3>${p.name}</h3>
+<div class="progress"><div class="bar" style="width:${pct(p.total,p.goal)}%"><span class="car">🏎️</span></div></div>
+<p>${p.total} / ${p.goal}</p>
+</div>`;
+  });
+
+  managers.forEach(p=>{
+    mgr.innerHTML+=`
+<div class="card manager-card">
+<h3>${p.name}</h3>
+<div class="progress"><div class="bar" style="width:${pct(p.total,p.goal)}%"><span class="car">🏎️</span></div></div>
+<p>${p.total} / ${p.goal}</p>
+</div>`;
+  });
+
+  document.getElementById("lapCounter").innerText=
+    teamPct>=100?"🏁 Finished"
+    :teamPct>=75?"Final Lap"
+    :teamPct>=50?"Lap 3"
+    :teamPct>=25?"Lap 2"
+    :"Lap 1";
+}
 applyTheme();
 startFallingTheme();
 loadData();
