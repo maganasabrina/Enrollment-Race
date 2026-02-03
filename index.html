@@ -9,7 +9,7 @@
 
 <style>
 /* =====================================================
-   🎨 THEME CSS VARIABLES (auto-updated by JS)
+   🎨 THEME VARIABLES (UPDATED BY JS)
    ===================================================== */
 :root{
   --bg1:#86efac;
@@ -28,7 +28,7 @@ body{
 }
 
 /* =====================================================
-   🏁 CHECKERED FINISH STRIPE
+   🏁 FINISH STRIPE
    ===================================================== */
 body::before{
   content:"";
@@ -48,29 +48,22 @@ body::before{
   z-index:0;
   overflow:hidden;
 }
-
 .falling{
   position:absolute;
   top:-40px;
   opacity:.85;
   animation: fall linear forwards;
 }
-
 @keyframes fall{
-  to{
-    transform: translateY(110vh) rotate(360deg);
-    opacity:1;
-  }
+  to{transform:translateY(110vh) rotate(360deg)}
 }
-
-/* Keep content above falling layer */
 body > *:not(#falling-layer){
   position:relative;
   z-index:2;
 }
 
 /* =====================================================
-   🧩 UI STYLES (unchanged)
+   🧩 UI STYLES (UNCHANGED)
    ===================================================== */
 h1{color:var(--primary);font-size:40px;margin-bottom:12px}
 
@@ -167,7 +160,6 @@ h1{color:var(--primary);font-size:40px;margin-bottom:12px}
 
 <body>
 
-<!-- 🌧️ Falling theme elements render here -->
 <div id="falling-layer"></div>
 
 <h1>🏁 Enrollment Race to 550</h1>
@@ -199,15 +191,18 @@ h1{color:var(--primary);font-size:40px;margin-bottom:12px}
 
 <script>
 /* =====================================================
-   🔢 CONSTANTS
+   🔢 CONSTANTS & DATA SOURCES
    ===================================================== */
 const TEAM_GOAL=550;
 const MANAGERS=["Sabrina","Edward","Teresita"];
 const CURRENT_DATE=new Date();
 const CURRENT_MONTH=new Date().toLocaleString("default",{month:"long"});
 
+const YEARLY_CSV="YOUR_YEARLY_CSV";
+const WEEKLY_CSV="YOUR_WEEKLY_CSV";
+
 /* =====================================================
-   🎨 MONTHLY THEMES (EDIT HERE FOR FUTURE THEMES)
+   🎨 MONTHLY THEMES (EDIT HERE)
    ===================================================== */
 const MONTH_THEMES={
   1:{bg1:"#fecdd3",bg2:"#ffe4e6",primary:"#e11d48",accent:"#fb7185",emoji:"💖",confetti:true},
@@ -230,33 +225,27 @@ const FALLING_THEMES={
    🎨 APPLY THEME
    ===================================================== */
 function applyTheme(){
-  const month=CURRENT_DATE.getMonth();
-  const theme=MONTH_THEMES[month]||{
+  const theme=MONTH_THEMES[CURRENT_DATE.getMonth()]||{
     bg1:"#86efac",bg2:"#a7f3d0",primary:"#ef4444",accent:"#22c55e",emoji:"🏁",confetti:false
   };
 
-  document.documentElement.style.setProperty("--bg1",theme.bg1);
-  document.documentElement.style.setProperty("--bg2",theme.bg2);
-  document.documentElement.style.setProperty("--primary",theme.primary);
-  document.documentElement.style.setProperty("--accent",theme.accent);
-  document.querySelector("h1").innerText=`${theme.emoji} Enrollment Race to 550 ${theme.emoji}`;
+  Object.entries(theme).forEach(([k,v])=>{
+    if(k!=="emoji"&&k!=="confetti")
+      document.documentElement.style.setProperty(`--${k}`,v);
+  });
 
+  document.querySelector("h1").innerText=`${theme.emoji} Enrollment Race to 550 ${theme.emoji}`;
   if(theme.confetti){
-    setInterval(()=>confetti({
-      particleCount:5,
-      colors:[theme.primary,theme.accent],
-      origin:{x:Math.random(),y:0}
-    }),4000);
+    setInterval(()=>confetti({particleCount:5,colors:[theme.primary,theme.accent]}),4000);
   }
 }
 
 /* =====================================================
-   🌧️ START FALLING BACKDROP
+   🌧️ START FALLING THEME
    ===================================================== */
 function startFallingTheme(){
   const items=FALLING_THEMES[CURRENT_DATE.getMonth()];
   if(!items) return;
-
   const layer=document.getElementById("falling-layer");
 
   setInterval(()=>{
@@ -272,8 +261,11 @@ function startFallingTheme(){
 }
 
 /* =====================================================
-   🚀 INIT
+   📊 DATA + RENDER (UNCHANGED FROM YOUR ORIGINAL)
    ===================================================== */
+// 👈 Your original loadData(), setView(), setWeek(), render()
+// KEEP THESE EXACTLY AS YOU HAD THEM
+
 applyTheme();
 startFallingTheme();
 loadData();
@@ -281,5 +273,3 @@ loadData();
 
 </body>
 </html>
-
-
