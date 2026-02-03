@@ -154,16 +154,20 @@ h1{color:var(--primary);font-size:40px;margin-bottom:12px}
    ===================================================== */
 #lapCounter {
   position: fixed;
-  bottom: 20px;           /* distance from bottom */
-  left: 50%;              /* center horizontally */
-  transform: translateX(-50%); /* truly center */
+  bottom: 10px;             /* closer to bottom */
+  left: 50%;
+  transform: translateX(-50%);
   background: #fff;
-  padding: 8px 16px;      /* smaller padding for a compact look */
-  border-radius: 12px;    
+  padding: 6px 12px;        /* smaller padding */
+  border-radius: 12px;
   font-weight: bold;
-  font-size: 14px;        /* smaller font size */
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2); /* optional: subtle shadow */
-  z-index: 1000;          /* stay above other elements */
+  font-size: 12px;          /* smaller text */
+  width: auto;              /* auto width */
+  max-width: 200px;         /* max width limit */
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  z-index: 1000;
+}
 }
 
 }
