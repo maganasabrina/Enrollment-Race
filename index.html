@@ -21,7 +21,7 @@
 html,body{overflow-x:hidden}
 body{
   margin:0;
-  padding:60px 16px 80px;
+  padding:60px 16px 140px; /* space for lap counter */
   font-family:Arial,sans-serif;
   background:repeating-linear-gradient(90deg,var(--bg1) 0 60px,var(--bg2) 60px 120px);
   text-align:center;
@@ -63,7 +63,7 @@ body > *:not(#falling-layer){
 }
 
 /* =====================================================
-   🧩 UI STYLES (UNCHANGED)
+   🧩 UI STYLES
    ===================================================== */
 h1{color:var(--primary);font-size:40px;margin-bottom:12px}
 
@@ -149,11 +149,23 @@ h1{color:var(--primary);font-size:40px;margin-bottom:12px}
   padding:6px 0;font-weight:bold
 }
 
+/* =====================================================
+   🏁 LAP COUNTER (FIXED + SMALL)
+   ===================================================== */
 #lapCounter{
-  position:fixed;bottom:16px;left:50%;
+  position:fixed;
+  bottom:16px;
+  left:50%;
   transform:translateX(-50%);
-  background:#fff;padding:8px 16px;
-  border-radius:16px;font-weight:bold
+  background:#fff;
+  padding:8px 16px;
+  border-radius:16px;
+  font-weight:bold;
+  width:fit-content;
+  max-width:90vw;
+  white-space:nowrap;
+  box-shadow:0 6px 18px rgba(0,0,0,.15);
+  z-index:10;
 }
 </style>
 </head>
@@ -202,7 +214,7 @@ const YEARLY_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrR
 const WEEKLY_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTDtYk0GQ5RzrRT_SBmcjH1TfE3k_kHJ5Sd7nmnoKr81UiDPHXF42gd46qCAuAW5hpwjdKC-6-P8bji/pub?gid=0&single=true&output=csv";
 
 /* =====================================================
-   🎨 MONTHLY THEMES (EDIT HERE)
+   🎨 MONTHLY THEMES
    ===================================================== */
 const MONTH_THEMES={
   1:{bg1:"#fecdd3",bg2:"#ffe4e6",primary:"#e11d48",accent:"#fb7185",emoji:"💖",confetti:true},
@@ -212,7 +224,7 @@ const MONTH_THEMES={
 };
 
 /* =====================================================
-   🌧️ FALLING BACKDROP ITEMS (EDIT HERE)
+   🌧️ FALLING BACKDROP ITEMS
    ===================================================== */
 const FALLING_THEMES={
   1:["💖","💕","🌹"],
@@ -229,12 +241,13 @@ function applyTheme(){
     bg1:"#86efac",bg2:"#a7f3d0",primary:"#ef4444",accent:"#22c55e",emoji:"🏁",confetti:false
   };
 
-  Object.entries(theme).forEach(([k,v])=>{
-    if(k!=="emoji"&&k!=="confetti")
-      document.documentElement.style.setProperty(`--${k}`,v);
-  });
+  document.documentElement.style.setProperty("--bg1",theme.bg1);
+  document.documentElement.style.setProperty("--bg2",theme.bg2);
+  document.documentElement.style.setProperty("--primary",theme.primary);
+  document.documentElement.style.setProperty("--accent",theme.accent);
 
   document.querySelector("h1").innerText=`${theme.emoji} Enrollment Race to 550 ${theme.emoji}`;
+
   if(theme.confetti){
     setInterval(()=>confetti({particleCount:5,colors:[theme.primary,theme.accent]}),4000);
   }
@@ -259,10 +272,10 @@ function startFallingTheme(){
     setTimeout(()=>el.remove(),12000);
   },500);
 }
-/* =====================================================
-   📊 DATA + RENDER (RESTORED)
-   ===================================================== */
 
+/* =====================================================
+   📊 DATA + RENDER (ORIGINAL LOGIC)
+   ===================================================== */
 let view="month",weeklyData=[],selectedWeek=null;
 let lastMVP=null,celebrated={};
 const pct=(a,b)=>b?Math.min(100,Math.round(a/b*100)):0;
@@ -290,12 +303,7 @@ function loadData(){
   ]).then(([y,w])=>{
     weeklyData=w.trim().split("\n").slice(1).map(r=>{
       const c=r.split(",");
-      return{
-        name:(c[2]||"").trim(),
-        week:(c[3]||"").trim(),
-        value:Number(c[4])||0,
-        month:(c[5]||"").trim()
-      };
+      return{name:(c[2]||"").trim(),week:(c[3]||"").trim(),value:Number(c[4])||0,month:(c[5]||"").trim()};
     });
 
     const people=y.trim().split("\n").slice(1).map(r=>{
@@ -343,15 +351,11 @@ function render(people){
   const mvpEl=document.getElementById("mvp");
   mvpEl.classList.toggle("active",!!mvp);
   if(mvp&&lastMVP!==mvp.name){fire();lastMVP=mvp.name;}
-  mvpEl.innerHTML=mvp
-    ?`🏆 MVP<br><strong>${mvp.name}</strong><br>${mvp.total}`
-    :`🏆 MVP<br>Waiting…`;
+  mvpEl.innerHTML=mvp?`🏆 MVP<br><strong>${mvp.name}</strong><br>${mvp.total}`:`🏆 MVP<br>Waiting…`;
 
   document.getElementById("podium").innerHTML=
     `<h3>🏁 Podium</h3>`+
-    racers.slice(0,3).map((p,i)=>
-      `<div class="podium-row">${["🥇","🥈","🥉"][i]} ${p.name}<span>${p.total}</span></div>`
-    ).join("");
+    racers.slice(0,3).map((p,i)=>`<div class="podium-row">${["🥇","🥈","🥉"][i]} ${p.name}<span>${p.total}</span></div>`).join("");
 
   racers.forEach((p,i)=>{
     dash.innerHTML+=`
@@ -379,6 +383,10 @@ ${i===0&&p.total>0?`<div class="mvp-badge">${lastMVP===p.name?"DEFENDING MVP":"M
     :teamPct>=25?"Lap 2"
     :"Lap 1";
 }
+
+/* =====================================================
+   🚀 INIT
+   ===================================================== */
 applyTheme();
 startFallingTheme();
 loadData();
