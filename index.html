@@ -359,6 +359,7 @@
       });
       const people=y.trim().split("\n").slice(1).map(r=>{ const c=r.split(","); return {name:c[0],goal:+c[1],ytd:+c[2],total:0}; });
 
+      // ✅ Person totals filter by month/week
       people.forEach(p=>{
         if(view==="ytd"){
           weeklyData.forEach(r=>{
@@ -369,7 +370,6 @@
         weeklyData.forEach(r=>{
           if(r.name!==p.name) return;
           if(view==="month" && r.month===CURRENT_MONTH) p.total+=r.value;
-          // ✅ FIX: Only count week enrollments for CURRENT_MONTH
           if(view==="week" && r.week===`Week ${selectedWeek||1}` && r.month===CURRENT_MONTH) p.total+=r.value;
         });
       });
@@ -385,7 +385,9 @@
     const racers=people.filter(p=>!MANAGERS.includes(p.name));
     const managers=people.filter(p=>MANAGERS.includes(p.name));
     racers.sort((a,b)=>b.total-a.total);
-    const teamTotal=people.reduce((a,b)=>a+b.total,0);
+
+    // ✅ TEAM TOTAL FIX: always sum all enrollments regardless of month/week
+    const teamTotal = weeklyData.reduce((sum,r)=>sum+r.value,0);
     const teamPct=pct(teamTotal,TEAM_GOAL);
 
     [25,50,75,100].forEach(m=>{ if(teamPct>=m && !celebrated[m]){ fire(); celebrated[m]=true; } });
