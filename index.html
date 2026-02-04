@@ -121,11 +121,12 @@
     position: relative;
   }
   .car {
-    position: absolute;
-    top: 50%;
-    left: calc(var(--pct, 0%) - 12px);
-    transform: translateY(-50%) scaleX(-1);
-    font-size: 18px;
+  position: absolute;
+  top: 50%;
+  left: var(--pct, 0%);
+  transform: translate(-50%, -50%) scaleX(-1);
+  font-size: 18px;
+}
   }
 
   #dashboard {
