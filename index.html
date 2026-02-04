@@ -118,11 +118,12 @@
     background: linear-gradient(90deg, #facc15, var(--accent));
     transition: width 0.6s ease;
     border-radius: 14px;
+    position: relative;
   }
   .car {
     position: absolute;
-    right: -12px;
     top: 50%;
+    left: calc(var(--pct, 0%) - 12px);
     transform: translateY(-50%) scaleX(-1);
     font-size: 18px;
   }
@@ -395,7 +396,7 @@
     document.getElementById("team").innerHTML=`
       <div class="card team">
         <h3>🏁 Team Goal</h3>
-        <div class="progress"><div class="bar" style="width:${teamPct}%"><span class="car">🏎️</span></div></div>
+        <div class="progress"><div class="bar" style="width:${teamPct}%; --pct:${teamPct}%"><span class="car">🏎️</span></div></div>
         <p>${teamTotal} / ${TEAM_GOAL} (${teamPct}%)</p>
       </div>`;
 
@@ -411,7 +412,7 @@
       dash.innerHTML+=`<div class="card ${i===0&&p.total>0?"leader":""}">
         ${i===0&&p.total>0?`<div class="mvp-badge">${lastMVP===p.name?"DEFENDING MVP":"MVP"}</div>`:""}
         <h3>${p.name}</h3>
-        <div class="progress"><div class="bar" style="width:${pct(p.total,p.goal)}%"><span class="car">🏎️</span></div></div>
+        <div class="progress"><div class="bar" style="width:${pct(p.total,p.goal)}%; --pct:${pct(p.total,p.goal)}%"><span class="car">🏎️</span></div></div>
         <p>${p.total} / ${p.goal}</p>
       </div>`;
     });
@@ -419,7 +420,7 @@
     managers.forEach(p=>{
       mgr.innerHTML+=`<div class="card manager-card">
         <h3>${p.name}</h3>
-        <div class="progress"><div class="bar" style="width:${pct(p.total,p.goal)}%"><span class="car">🏎️</span></div></div>
+        <div class="progress"><div class="bar" style="width:${pct(p.total,p.goal)}%; --pct:${pct(p.total,p.goal)}%"><span class="car">🏎️</span></div></div>
         <p>${p.total} / ${p.goal}</p>
       </div>`;
     });
