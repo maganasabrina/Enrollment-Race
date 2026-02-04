@@ -369,7 +369,8 @@
         weeklyData.forEach(r=>{
           if(r.name!==p.name) return;
           if(view==="month" && r.month===CURRENT_MONTH) p.total+=r.value;
-          if(view==="week" && r.week===`Week ${selectedWeek||1}`) p.total+=r.value;
+          // ✅ FIX: Only count week enrollments for CURRENT_MONTH
+          if(view==="week" && r.week===`Week ${selectedWeek||1}` && r.month===CURRENT_MONTH) p.total+=r.value;
         });
       });
 
@@ -431,4 +432,3 @@
 </script>
 </body>
 </html>
-
